@@ -1,0 +1,18 @@
+{
+  "name": "aws-step-functions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "mkdir -p ~/.docker-ecr && aws ecr get-login-password --region eu-north-1 --profile AWS-step-functions | DOCKER_CONFIG=~/.docker-ecr docker login --username AWS --password-stdin 223057859479.dkr.ecr.eu-north-1.amazonaws.com && DOCKER_CONFIG=~/.docker-ecr DOCKER_BUILDKIT=0 DOCKER_DEFAULT_PLATFORM=linux/amd64 serverless deploy --aws-profile AWS-step-functions"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "serverless": "^3.40.0",
+    "serverless-python-requirements": "^6.1.2",
+    "serverless-step-functions": "^3.31.2"
+  }
+}

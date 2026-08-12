@@ -1,0 +1,2 @@
+planetary-computer
+pystac-client

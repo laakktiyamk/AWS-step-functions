@@ -1,0 +1,105 @@
+service: ndvi-pipeline
+frameworkVersion: '3.*'
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: eu-north-1
+  stage: dev
+  profile: AWS-step-functions
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+          Resource: "*"
+  ecr:
+    images:
+      processor-image:
+        path: .
+        file: Dockerfile.processor
+        platform: linux/amd64
+
+plugins:
+  - serverless-step-functions
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    pythonBin: python
+    dockerizePip: true
+    dockerImage: public.ecr.aws/sam/build-python3.11
+    slim: true
+    useStaticCache: false
+    useDownloadCache: false
+    fileName: functions/hello/requirements.txt
+    noDeploy:
+      - boto3
+      - botocore
+
+functions:
+  distributor:
+    handler: functions/distributor/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    environment:
+      STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
+    events:
+      - httpApi:
+          path: /process
+          method: post
+
+  hello:
+    handler: functions/hello/handler.handler
+    memorySize: 512
+    timeout: 30
+
+  processor:
+    image:
+      name: processor-image
+    timeout: 120
+    memorySize: 3008
+
+stepFunctions:
+  stateMachines:
+    ndviWorkflow:
+      name: ndviWorkflow
+      definition:
+        StartAt: distributor
+        States:
+          distributor:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [DistributorLambdaFunction, Arn]
+            Next: forEachField
+          forEachField:
+            Type: Map
+            ItemsPath: $.fields
+            MaxConcurrency: 2
+            Iterator:
+              StartAt: hello
+              States:
+                hello:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [HelloLambdaFunction, Arn]
+                  Next: forEachDate
+                forEachDate:
+                  Type: Map
+                  ItemsPath: $.items
+                  MaxConcurrency: 20
+                  Iterator:
+                    StartAt: processor
+                    States:
+                      processor:
+                        Type: Task
+                        Resource:
+                          Fn::GetAtt: [ProcessorLambdaFunction, Arn]
+                        End: true
+                  End: true
+            End: true

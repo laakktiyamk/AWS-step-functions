@@ -1,3 +1,9 @@
 numpy==1.26.4
 rasterio==1.3.10
 pillow==10.4.0
+pymongo
+pandas
+scikit-learn==1.5.2
+scipy==1.13.1
+lightgbm==4.5.0
+optuna

@@ -32,6 +32,11 @@
             "path": ".",
             "file": "Dockerfile.processor",
             "platform": "linux/amd64"
+          },
+          "classifier-image": {
+            "path": ".",
+            "file": "Dockerfile.classifier",
+            "platform": "linux/amd64"
           }
         }
       },
@@ -127,6 +132,12 @@
               "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-processor"
             }
           },
+          "ClassifierLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-classifier"
+            }
+          },
           "IamRoleLambdaExecution": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -215,7 +226,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1786464115346-2026-08-11T16:01:55.346Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z/ndvi-pipeline.zip"
               },
               "Handler": "functions/distributor/handler.handler",
               "Runtime": "nodejs20.x",
@@ -247,7 +258,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1786464115346-2026-08-11T16:01:55.346Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z/ndvi-pipeline.zip"
               },
               "Handler": "functions/hello/handler.handler",
               "Runtime": "python3.11",
@@ -265,31 +276,31 @@
               "HelloLogGroup"
             ]
           },
-          "DistributorLambdaVersion4sr6uju3CzmfV8d4yBmz7AIk1BgDMEubqMp9VeLE": {
+          "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DistributorLambdaFunction"
               },
-              "CodeSha256": "sWSjD/vwm9RWsMuEIlK5q8vET8ZTW/QM7fjYzh+T2Ic="
+              "CodeSha256": "ClF3G+5ccnJng8JeNcC0RNGyPkKOvCQT9hwjTw004dE="
             }
           },
-          "HelloLambdaVersioncLOWKzWK6RdHjoksNSYME77GIDkc9AQOrXBL3HUl9M": {
+          "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HelloLambdaFunction"
               },
-              "CodeSha256": "sWSjD/vwm9RWsMuEIlK5q8vET8ZTW/QM7fjYzh+T2Ic="
+              "CodeSha256": "ClF3G+5ccnJng8JeNcC0RNGyPkKOvCQT9hwjTw004dE="
             }
           },
           "ProcessorLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "ImageUri": "223057859479.dkr.ecr.eu-north-1.amazonaws.com/serverless-ndvi-pipeline-dev@sha256:668434b83243051f7a4f54f7443353465e3583877707d72b304e4c39824ffc39"
+                "ImageUri": "223057859479.dkr.ecr.eu-north-1.amazonaws.com/serverless-ndvi-pipeline-dev@sha256:db2a3de848cfd9fc58a1fa52d9b807f06812d1c055c6125e572b39f7cf33d642"
               },
               "PackageType": "Image",
               "FunctionName": "ndvi-pipeline-dev-processor",
@@ -306,14 +317,45 @@
               "ProcessorLogGroup"
             ]
           },
-          "ProcessorLambdaVersionPpiyhbTBXqQC5gr6Gw9r9EkN8ZKjEqGLHRgLcJLGGjc": {
+          "ProcessorLambdaVersionITW1yXkabKMkhc5p6ppSXdfq2STUCEz94RLclKV0wY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ProcessorLambdaFunction"
               },
-              "CodeSha256": "668434b83243051f7a4f54f7443353465e3583877707d72b304e4c39824ffc39"
+              "CodeSha256": "db2a3de848cfd9fc58a1fa52d9b807f06812d1c055c6125e572b39f7cf33d642"
+            }
+          },
+          "ClassifierLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "ImageUri": "223057859479.dkr.ecr.eu-north-1.amazonaws.com/serverless-ndvi-pipeline-dev@sha256:f60e649606c9ffe99577e74cb665e723f2a3161ca516dcad7c6412b9862b62c9"
+              },
+              "PackageType": "Image",
+              "FunctionName": "ndvi-pipeline-dev-classifier",
+              "MemorySize": 3008,
+              "Timeout": 120,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ClassifierLogGroup"
+            ]
+          },
+          "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ClassifierLambdaFunction"
+              },
+              "CodeSha256": "f60e649606c9ffe99577e74cb665e723f2a3161ca516dcad7c6412b9862b62c9"
             }
           },
           "NdviWorkflowRole": {
@@ -573,7 +615,7 @@
           "DistributorLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DistributorLambdaVersion4sr6uju3CzmfV8d4yBmz7AIk1BgDMEubqMp9VeLE"
+              "Ref": "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-DistributorLambdaFunctionQualifiedArn"
@@ -582,7 +624,7 @@
           "HelloLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HelloLambdaVersioncLOWKzWK6RdHjoksNSYME77GIDkc9AQOrXBL3HUl9M"
+              "Ref": "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-HelloLambdaFunctionQualifiedArn"
@@ -591,10 +633,19 @@
           "ProcessorLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ProcessorLambdaVersionPpiyhbTBXqQC5gr6Gw9r9EkN8ZKjEqGLHRgLcJLGGjc"
+              "Ref": "ProcessorLambdaVersionITW1yXkabKMkhc5p6ppSXdfq2STUCEz94RLclKV0wY"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-ProcessorLambdaFunctionQualifiedArn"
+            }
+          },
+          "ClassifierLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-ClassifierLambdaFunctionQualifiedArn"
             }
           },
           "NdviWorkflowArn": {
@@ -771,7 +822,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "DistributorLambdaVersion4sr6uju3CzmfV8d4yBmz7AIk1BgDMEubqMp9VeLE"
+        "versionLogicalId": "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY"
       },
       "hello": {
         "handler": "functions/hello/handler.handler",
@@ -783,7 +834,7 @@
         "memory": 512,
         "runtime": "python3.11",
         "vpc": {},
-        "versionLogicalId": "HelloLambdaVersioncLOWKzWK6RdHjoksNSYME77GIDkc9AQOrXBL3HUl9M"
+        "versionLogicalId": "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI"
       },
       "processor": {
         "image": {
@@ -796,7 +847,20 @@
         "package": {},
         "memory": 3008,
         "vpc": {},
-        "versionLogicalId": "ProcessorLambdaVersionPpiyhbTBXqQC5gr6Gw9r9EkN8ZKjEqGLHRgLcJLGGjc"
+        "versionLogicalId": "ProcessorLambdaVersionITW1yXkabKMkhc5p6ppSXdfq2STUCEz94RLclKV0wY"
+      },
+      "classifier": {
+        "image": {
+          "name": "classifier-image"
+        },
+        "timeout": 120,
+        "memorySize": 3008,
+        "events": [],
+        "name": "ndvi-pipeline-dev-classifier",
+        "package": {},
+        "memory": 3008,
+        "vpc": {},
+        "versionLogicalId": "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4"
       }
     },
     "configValidationMode": "error",
@@ -875,10 +939,10 @@
       },
       "activities": []
     },
-    "artifact": "/mnt/d/AWS-step-functions/.serverless/ndvi-pipeline.zip"
+    "artifact": "D:\\AWS-step-functions\\.serverless\\ndvi-pipeline.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1786464115346-2026-08-11T16:01:55.346Z",
+    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z",
     "artifact": "ndvi-pipeline.zip"
   }
 }

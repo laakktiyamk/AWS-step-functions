@@ -23,6 +23,10 @@ provider:
         path: .
         file: Dockerfile.processor
         platform: linux/amd64
+      classifier-image:
+        path: .
+        file: Dockerfile.classifier
+        platform: linux/amd64  
 
 plugins:
   - serverless-step-functions
@@ -64,6 +68,11 @@ functions:
       name: processor-image
     timeout: 120
     memorySize: 3008
+  classifier:
+    image:
+      name: classifier-image
+    timeout: 120
+    memorySize: 3008    
 
 stepFunctions:
   stateMachines:

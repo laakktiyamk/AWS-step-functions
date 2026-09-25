@@ -1,5 +1,6 @@
 service: ndvi-pipeline
 frameworkVersion: '3.*'
+useDotenv: true
 configValidationMode: error
 
 provider:
@@ -30,7 +31,7 @@ provider:
 
 plugins:
   - serverless-step-functions
-  - serverless-python-requirements
+  - serverless-python-requirements  
 
 custom:
   pythonRequirements:
@@ -44,10 +45,10 @@ custom:
     noDeploy:
       - boto3
       - botocore
-
+  
 functions:
   distributor:
-    handler: functions/distributor/handler.handler
+    handler: dist/functions/distributor/handler.handler
     runtime: nodejs20.x
     memorySize: 256
     timeout: 10
@@ -72,7 +73,31 @@ functions:
     image:
       name: classifier-image
     timeout: 120
-    memorySize: 3008    
+    memorySize: 3008
+  authRegister:
+    handler: dist/functions/auth/handler.register
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    environment:
+      MONGO_URI: ${env:MONGO_URI}
+      SECRET: ${env:SECRET}
+    events:
+      - httpApi:
+          path: /auth/register
+          method: post
+  authLogin:
+    handler: dist/functions/auth/handler.login
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    environment:
+      MONGO_URI: ${env:MONGO_URI}
+      SECRET: ${env:SECRET}
+    events:
+      - httpApi:
+          path: /auth/login
+          method: post      
 
 stepFunctions:
   stateMachines:

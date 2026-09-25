@@ -138,6 +138,18 @@
               "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-classifier"
             }
           },
+          "AuthRegisterLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-authRegister"
+            }
+          },
+          "AuthLoginLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-authLogin"
+            }
+          },
           "IamRoleLambdaExecution": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -226,9 +238,9 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1790296368811-2026-09-25T00:32:48.811Z/ndvi-pipeline.zip"
               },
-              "Handler": "functions/distributor/handler.handler",
+              "Handler": "dist/functions/distributor/handler.handler",
               "Runtime": "nodejs20.x",
               "FunctionName": "ndvi-pipeline-dev-distributor",
               "MemorySize": 256,
@@ -258,7 +270,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1790296368811-2026-09-25T00:32:48.811Z/ndvi-pipeline.zip"
               },
               "Handler": "functions/hello/handler.handler",
               "Runtime": "python3.11",
@@ -276,24 +288,106 @@
               "HelloLogGroup"
             ]
           },
-          "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY": {
+          "AuthRegisterLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/ndvi-pipeline/dev/1790296368811-2026-09-25T00:32:48.811Z/ndvi-pipeline.zip"
+              },
+              "Handler": "dist/functions/auth/handler.register",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ndvi-pipeline-dev-authRegister",
+              "MemorySize": 256,
+              "Timeout": 10,
+              "Environment": {
+                "Variables": {
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AuthRegisterLogGroup"
+            ]
+          },
+          "AuthLoginLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/ndvi-pipeline/dev/1790296368811-2026-09-25T00:32:48.811Z/ndvi-pipeline.zip"
+              },
+              "Handler": "dist/functions/auth/handler.login",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ndvi-pipeline-dev-authLogin",
+              "MemorySize": 256,
+              "Timeout": 10,
+              "Environment": {
+                "Variables": {
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AuthLoginLogGroup"
+            ]
+          },
+          "DistributorLambdaVersionnlhCxydIvO7TKJD2RYrdTRuiRj5Inj1q1MtSHJitc4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DistributorLambdaFunction"
               },
-              "CodeSha256": "ClF3G+5ccnJng8JeNcC0RNGyPkKOvCQT9hwjTw004dE="
+              "CodeSha256": "BLUcqV5DQi0I+uGFDDM8BpmfrgqRoR7dSZxCg7U/QKE="
             }
           },
-          "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI": {
+          "HelloLambdaVersionyR5iuS4zvxfn4wS0Dk2ulgQK5OU1xwMrVM8EBhWHHf8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HelloLambdaFunction"
               },
-              "CodeSha256": "ClF3G+5ccnJng8JeNcC0RNGyPkKOvCQT9hwjTw004dE="
+              "CodeSha256": "BLUcqV5DQi0I+uGFDDM8BpmfrgqRoR7dSZxCg7U/QKE="
+            }
+          },
+          "AuthRegisterLambdaVersiony5VrHZ0B5NGYFBjlNxFF6q5kS45wvkg10lQhxSQ": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AuthRegisterLambdaFunction"
+              },
+              "CodeSha256": "BLUcqV5DQi0I+uGFDDM8BpmfrgqRoR7dSZxCg7U/QKE="
+            }
+          },
+          "AuthLoginLambdaVersionWmLweJ05PZrcouIaKuGcqCt6fMdGyPTCFyl59WmzmI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AuthLoginLambdaFunction"
+              },
+              "CodeSha256": "BLUcqV5DQi0I+uGFDDM8BpmfrgqRoR7dSZxCg7U/QKE="
             }
           },
           "ProcessorLambdaFunction": {
@@ -601,6 +695,150 @@
               }
             },
             "DependsOn": "HttpApiIntegrationDistributor"
+          },
+          "AuthRegisterLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AuthRegisterLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationAuthRegister": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"AuthRegisterLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostAuthRegister": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /auth/register",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationAuthRegister"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationAuthRegister"
+          },
+          "AuthLoginLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AuthLoginLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationAuthLogin": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"AuthLoginLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostAuthLogin": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /auth/login",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationAuthLogin"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationAuthLogin"
           }
         },
         "Outputs": {
@@ -615,7 +853,7 @@
           "DistributorLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY"
+              "Ref": "DistributorLambdaVersionnlhCxydIvO7TKJD2RYrdTRuiRj5Inj1q1MtSHJitc4"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-DistributorLambdaFunctionQualifiedArn"
@@ -624,10 +862,28 @@
           "HelloLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI"
+              "Ref": "HelloLambdaVersionyR5iuS4zvxfn4wS0Dk2ulgQK5OU1xwMrVM8EBhWHHf8"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-HelloLambdaFunctionQualifiedArn"
+            }
+          },
+          "AuthRegisterLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AuthRegisterLambdaVersiony5VrHZ0B5NGYFBjlNxFF6q5kS45wvkg10lQhxSQ"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-AuthRegisterLambdaFunctionQualifiedArn"
+            }
+          },
+          "AuthLoginLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AuthLoginLambdaVersionWmLweJ05PZrcouIaKuGcqCt6fMdGyPTCFyl59WmzmI"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-AuthLoginLambdaFunctionQualifiedArn"
             }
           },
           "ProcessorLambdaFunctionQualifiedArn": {
@@ -799,7 +1055,7 @@
     "pluginsData": {},
     "functions": {
       "distributor": {
-        "handler": "functions/distributor/handler.handler",
+        "handler": "dist/functions/distributor/handler.handler",
         "runtime": "nodejs20.x",
         "memorySize": 256,
         "timeout": 10,
@@ -822,7 +1078,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "DistributorLambdaVersioniuTH4DQw1hOEYu4TVrsVC85ocVGeDlGF1tSv0pVNY"
+        "versionLogicalId": "DistributorLambdaVersionnlhCxydIvO7TKJD2RYrdTRuiRj5Inj1q1MtSHJitc4"
       },
       "hello": {
         "handler": "functions/hello/handler.handler",
@@ -834,7 +1090,7 @@
         "memory": 512,
         "runtime": "python3.11",
         "vpc": {},
-        "versionLogicalId": "HelloLambdaVersionWMjFRx54DTCcMR3db7hWCMCbSrM22QPKmUTNYWAI"
+        "versionLogicalId": "HelloLambdaVersionyR5iuS4zvxfn4wS0Dk2ulgQK5OU1xwMrVM8EBhWHHf8"
       },
       "processor": {
         "image": {
@@ -861,6 +1117,56 @@
         "memory": 3008,
         "vpc": {},
         "versionLogicalId": "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4"
+      },
+      "authRegister": {
+        "handler": "dist/functions/auth/handler.register",
+        "runtime": "nodejs20.x",
+        "memorySize": 256,
+        "timeout": 10,
+        "environment": {
+          "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+          "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+        },
+        "events": [
+          {
+            "httpApi": {
+              "path": "/auth/register",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/auth/register"
+          }
+        ],
+        "name": "ndvi-pipeline-dev-authRegister",
+        "package": {},
+        "memory": 256,
+        "vpc": {},
+        "versionLogicalId": "AuthRegisterLambdaVersiony5VrHZ0B5NGYFBjlNxFF6q5kS45wvkg10lQhxSQ"
+      },
+      "authLogin": {
+        "handler": "dist/functions/auth/handler.login",
+        "runtime": "nodejs20.x",
+        "memorySize": 256,
+        "timeout": 10,
+        "environment": {
+          "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+          "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+        },
+        "events": [
+          {
+            "httpApi": {
+              "path": "/auth/login",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/auth/login"
+          }
+        ],
+        "name": "ndvi-pipeline-dev-authLogin",
+        "package": {},
+        "memory": 256,
+        "vpc": {},
+        "versionLogicalId": "AuthLoginLambdaVersionWmLweJ05PZrcouIaKuGcqCt6fMdGyPTCFyl59WmzmI"
       }
     },
     "configValidationMode": "error",
@@ -868,6 +1174,7 @@
     "initialServerlessConfig": {
       "service": "ndvi-pipeline",
       "frameworkVersion": "3.*",
+      "useDotenv": true,
       "configValidationMode": "error",
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
@@ -942,7 +1249,7 @@
     "artifact": "D:\\AWS-step-functions\\.serverless\\ndvi-pipeline.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1789484566404-2026-09-15T15:02:46.404Z",
+    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1790296368811-2026-09-25T00:32:48.811Z",
     "artifact": "ndvi-pipeline.zip"
   }
 }

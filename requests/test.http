@@ -1,3 +1,29 @@
+@baseUrl = https://wkpv1czepd.execute-api.eu-north-1.amazonaws.com
+@token = 
+
+### Signup
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "hessu@gmail.com",
+  "password": "Rytky#2026",
+  "username": "hessu Hopo"
+}
+
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "hessu@gmail.com",
+  "password": "Rytky#2026"
+}
+
+
+
+
 ### Testaa dev hello - requests mukana
 GET https://fbjtozf3r4.execute-api.eu-north-1.amazonaws.com/hello
 Content-Type: application/json

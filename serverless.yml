@@ -20,32 +20,16 @@ provider:
           Resource: "*"
   ecr:
     images:
-      processor-image:
-        path: .
-        file: Dockerfile.processor
-        platform: linux/amd64
+      # processor-image poistettu: processor on nyt Node.js-funktio
       classifier-image:
         path: .
         file: Dockerfile.classifier
-        platform: linux/amd64  
+        platform: linux/amd64
 
 plugins:
   - serverless-step-functions
-  - serverless-python-requirements  
+  - serverless-python-requirements
 
-custom:
-  pythonRequirements:
-    pythonBin: python
-    dockerizePip: true
-    dockerImage: public.ecr.aws/sam/build-python3.11
-    slim: true
-    useStaticCache: false
-    useDownloadCache: false
-    fileName: functions/hello/requirements.txt
-    noDeploy:
-      - boto3
-      - botocore
-  
 functions:
   distributor:
     handler: dist/functions/distributor/handler.handler
@@ -54,26 +38,41 @@ functions:
     timeout: 10
     environment:
       STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
+      SECRET: ${env:SECRET}   # JWT:n tarkistus (userId)
     events:
       - httpApi:
           path: /process
           method: post
 
-  hello:
-    handler: functions/hello/handler.handler
+  ndviDates:
+    handler: dist/functions/ndviDates/handler.handler
+    runtime: nodejs20.x
     memorySize: 512
-    timeout: 30
+    timeout: 120   # syncDates + sää usealta kasvukaudelta
+    environment:
+      MONGO_URI: ${env:MONGO_URI}
+      SECRET: ${env:SECRET}
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
 
-  processor:
-    image:
-      name: processor-image
-    timeout: 120
-    memorySize: 3008
+  # Uusi nimi (ei enää "processor"): Docker-image -> zip vaatii uuden resurssin
+  imageProcessor:
+    handler: dist/functions/processor/handler.handler
+    runtime: nodejs20.x
+    memorySize: 1024
+    timeout: 60
+    environment:
+      MONGO_URI: ${env:MONGO_URI}
+      SECRET: ${env:SECRET}
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+
   classifier:
     image:
       name: classifier-image
     timeout: 120
     memorySize: 3008
+
   authRegister:
     handler: dist/functions/auth/handler.register
     runtime: nodejs20.x
@@ -86,6 +85,7 @@ functions:
       - httpApi:
           path: /auth/register
           method: post
+
   authLogin:
     handler: dist/functions/auth/handler.login
     runtime: nodejs20.x
@@ -97,7 +97,7 @@ functions:
     events:
       - httpApi:
           path: /auth/login
-          method: post      
+          method: post
 
 stepFunctions:
   stateMachines:
@@ -111,29 +111,42 @@ stepFunctions:
             Resource:
               Fn::GetAtt: [DistributorLambdaFunction, Arn]
             Next: forEachField
+
           forEachField:
             Type: Map
             ItemsPath: $.fields
             MaxConcurrency: 2
             Iterator:
-              StartAt: hello
+              StartAt: ndviDates
               States:
-                hello:
+                ndviDates:
                   Type: Task
                   Resource:
-                    Fn::GetAtt: [HelloLambdaFunction, Arn]
+                    Fn::GetAtt: [NdviDatesLambdaFunction, Arn]
                   Next: forEachDate
+
                 forEachDate:
                   Type: Map
                   ItemsPath: $.items
-                  MaxConcurrency: 20
+                  MaxConcurrency: 5
+                  ItemSelector:
+                    item.$: $$.Map.Item.Value
+                    geometry.$: $.geometry
+                  ResultPath: null   # processorien tulokset pois (payload-raja 256 KB)
                   Iterator:
                     StartAt: processor
                     States:
                       processor:
                         Type: Task
                         Resource:
-                          Fn::GetAtt: [ProcessorLambdaFunction, Arn]
+                          Fn::GetAtt: [ImageProcessorLambdaFunction, Arn]
                         End: true
+                  Next: fieldDone
+
+                fieldDone:
+                  Type: Pass
+                  Parameters:
+                    field_id.$: $.field_id
+                    done: true
                   End: true
             End: true

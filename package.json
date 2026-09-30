@@ -24,12 +24,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "dotenv": "^17.4.2",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.4.0",
-    "express": "^5.2.1",
-    "express-validator": "^7.3.2",
+    "@aws-sdk/client-sfn": "^3.1141.0",
     "@sentinel-hub/sentinelhub-js": "^0.12.6",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^7.3.5",
@@ -37,6 +32,12 @@
     "@turf/centroid": "^7.3.5",
     "@turf/intersect": "^7.3.5",
     "@turf/rewind": "^7.3.5",
-    "@turf/union": "^7.3.5"
+    "@turf/union": "^7.3.5",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.4.0"
   }
 }

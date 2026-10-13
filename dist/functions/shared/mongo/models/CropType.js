@@ -9,5 +9,5 @@ const CropTypeSchema = new mongoose_1.Schema({
 }, {
     collection: "cropTypes",
 });
-const CropTypeModel = connections_1.localConnection.model("CropType", CropTypeSchema);
+const CropTypeModel = connections_1.parcelConnection.model("CropType", CropTypeSchema);
 exports.CropType = CropTypeModel;

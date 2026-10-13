@@ -21,5 +21,5 @@ const CropParcelSchema = new mongoose_1.Schema({
 CropParcelSchema.index({ peruslohkotunnus: 1, lohkonumero: 1, vuosi: 1 }, { unique: true });
 CropParcelSchema.index({ kasvikoodi: 1 });
 CropParcelSchema.index({ geometry: "2dsphere" });
-const CropParcelModel = connections_1.localConnection.model("CropParcel", CropParcelSchema);
+const CropParcelModel = connections_1.parcelConnection.model("CropParcel", CropParcelSchema);
 exports.CropParcel = CropParcelModel;

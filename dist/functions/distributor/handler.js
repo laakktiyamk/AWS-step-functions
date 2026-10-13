@@ -7,19 +7,6 @@ exports.handler = void 0;
 const client_sfn_1 = require("@aws-sdk/client-sfn");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const sfn = new client_sfn_1.SFNClient({ region: "eu-north-1" });
-const getBbox = (geometry) => {
-    const coords = [];
-    const collect = (c) => {
-        if (typeof c[0] === "number")
-            coords.push(c);
-        else
-            c.forEach(collect);
-    };
-    collect(geometry.coordinates);
-    const lons = coords.map(c => c[0]);
-    const lats = coords.map(c => c[1]);
-    return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
-};
 // Lukee käyttäjän id:n Authorization-headerin JWT:stä (HTTP API antaa headerit pienillä kirjaimilla)
 const getUserIdFromEvent = (event) => {
     const header = event.headers?.authorization || event.headers?.Authorization || "";
@@ -40,32 +27,9 @@ const response = (statusCode, body) => ({
 });
 const handler = async (event) => {
     const isApiCall = !!event.requestContext || !!event.body;
-    // ── Step Functions -kutsu (ensimmäinen tila) tai suora testikutsu ──
+    // ── Step Functions -kutsu (ensimmäinen tila): palautetaan fields sellaisenaan ──
     if (!isApiCall) {
-        if (event.fields)
-            return { fields: event.fields };
-        const start = event.start_date || event.start;
-        const end = event.end_date || event.end;
-        const geojson = event.geojson;
-        if (!geojson)
-            return event;
-        let fields = [];
-        if (Array.isArray(geojson)) {
-            fields = geojson.map((g, i) => {
-                const geometry = g.geometry || g;
-                return { field_id: `field-${i + 1}`, geojson: geometry, geometry, bbox: getBbox(geometry), start, end, start_date: start };
-            });
-        }
-        else if (geojson.type === "FeatureCollection") {
-            fields = geojson.features.map((f, i) => {
-                const geometry = f.geometry || f;
-                return { field_id: f.properties?.id || `field-${i + 1}`, geojson: geometry, geometry, bbox: getBbox(geometry), start, end, start_date: start };
-            });
-        }
-        else {
-            fields = [{ field_id: "field-1", geojson, geometry: geojson, bbox: getBbox(geojson), start, end, start_date: start }];
-        }
-        return { fields };
+        return { fields: event.fields };
     }
     // ── HTTP API: POST /process ──
     const userId = getUserIdFromEvent(event);
@@ -73,31 +37,47 @@ const handler = async (event) => {
         return response(401, { error: "Unauthorized" });
     let body;
     try {
-        body = typeof event.body === "string" ? JSON.parse(event.body) : event.body || event;
+        body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     }
     catch {
         return response(400, { error: "invalid JSON body" });
     }
-    let geometry;
-    try {
-        geometry = typeof body.geometry === "string" ? JSON.parse(body.geometry) : body.geometry;
+    if (!body?.start_date) {
+        return response(400, { error: "start_date required" });
     }
-    catch {
-        return response(400, { error: "invalid geometry" });
+    // fields-taulukko; vanha muoto (geometry ylätasolla) kääritään yhden alkion taulukoksi
+    const items = Array.isArray(body.fields)
+        ? body.fields
+        : body.geometry
+            ? [{ geometry: body.geometry, name: body.name, kasvulohkot: body.kasvulohkot }]
+            : [];
+    if (items.length === 0) {
+        return response(400, { error: "fields required" });
     }
-    if (!geometry || !body.start_date) {
-        return response(400, { error: "geometry and start_date required" });
-    }
-    const stateMachineArn = process.env.STEP_FUNCTION_ARN;
-    const fields = [{
-            field_id: "field-1",
+    const fields = [];
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        let geometry;
+        try {
+            geometry = typeof item.geometry === "string" ? JSON.parse(item.geometry) : item.geometry;
+        }
+        catch {
+            return response(400, { error: `invalid geometry in field ${i + 1}` });
+        }
+        if (!geometry) {
+            return response(400, { error: `geometry required in field ${i + 1}` });
+        }
+        fields.push({
+            field_id: `field-${i + 1}`,
             geometry,
             start_date: body.start_date,
             end_date: body.end_date,
-            name: body.name ?? "",
+            name: item.name ?? "",
             userId,
-            kasvulohkot: body.kasvulohkot ?? []
-        }];
+            kasvulohkot: item.kasvulohkot ?? []
+        });
+    }
+    const stateMachineArn = process.env.STEP_FUNCTION_ARN;
     const result = await sfn.send(new client_sfn_1.StartExecutionCommand({
         stateMachineArn,
         input: JSON.stringify({ fields })

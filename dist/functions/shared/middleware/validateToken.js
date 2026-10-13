@@ -28,7 +28,7 @@ const authenticateUser = (req, res, next) => {
     if (url === "/" || url.includes("login") || url.includes("register")) {
         return next();
     }
-    const token = req.header("authorization")?.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
         return res.status(401).json({ message: "Token not found." });
     }

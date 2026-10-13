@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sfn": "^3.1141.0",
+    "@mapbox/geojsonhint": "^3.3.0",
     "@sentinel-hub/sentinelhub-js": "^0.12.6",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^7.3.5",

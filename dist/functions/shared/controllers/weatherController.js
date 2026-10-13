@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.weather = exports.weatherAll = void 0;
+exports.weatherAll = void 0;
 const mongodb = __importStar(require("../mongo/mongodb"));
 const weatherAll = async (req, res) => {
     const geometryHash = req.body.geometryHash;
@@ -49,14 +49,14 @@ const weatherAll = async (req, res) => {
     }
 };
 exports.weatherAll = weatherAll;
-const weather = async (req, res) => {
-    const { sentinelid } = req.body;
-    const data = await mongodb.getWeather(sentinelid);
-    if (data) {
-        res.status(200).json(data);
-    }
-    else {
-        res.status(404).json({ error: "no weather data found" });
-    }
-};
-exports.weather = weather;
+/*
+export const weather = async (req: Request, res: Response): Promise<void> => {
+  const { sentinelid } = req.body;
+  const data = await mongodb.getWeather(sentinelid);
+  
+  if (data) {
+    res.status(200).json(data);
+  } else {
+    res.status(404).json({ error: "no weather data found" });
+  }
+};*/ 

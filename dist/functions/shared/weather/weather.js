@@ -21,6 +21,25 @@ const getCentroid = (geometry) => {
     return { lat, lon };
 };
 exports.getCentroid = getCentroid;
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// 429 ja palvelinvirheet yritetään uudelleen odotusta pidentäen
+const fetchWithRetry = async (url, params, maxAttempts = 5) => {
+    for (let attempt = 1;; attempt++) {
+        try {
+            const response = await axios_1.default.get(url, { params, timeout: 30000 });
+            return response.data;
+        }
+        catch (err) {
+            const status = axios_1.default.isAxiosError(err) ? err.response?.status : undefined;
+            const retryable = !status || status === 429 || status >= 500;
+            if (!retryable || attempt >= maxAttempts)
+                throw err;
+            const wait = 2000 * 2 ** (attempt - 1) + Math.random() * 1000;
+            console.log(`Weather: retry ${attempt}/${maxAttempts - 1} in ${Math.round(wait)} ms (status ${status ?? 'network'})`);
+            await sleep(wait);
+        }
+    }
+};
 const getWeatherData = async (geometry, startDate, endDate) => {
     const cutoff = (0, exports.getArchiveCutoff)();
     // Rajoitetaan endDate archive-rajaan
@@ -32,16 +51,13 @@ const getWeatherData = async (geometry, startDate, endDate) => {
     }
     const { lat, lon } = (0, exports.getCentroid)(geometry);
     console.log(`Weather: fetching ${formatDate(startDate)} → ${formatDate(safeEndDate)}`);
-    const response = await axios_1.default.get("https://archive-api.open-meteo.com/v1/archive", {
-        params: {
-            latitude: lat,
-            longitude: lon,
-            start_date: formatDate(startDate),
-            end_date: formatDate(safeEndDate),
-            daily: "temperature_2m_mean,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration,wind_speed_10m_mean",
-            timezone: "UTC",
-        },
+    return await fetchWithRetry("https://archive-api.open-meteo.com/v1/archive", {
+        latitude: lat,
+        longitude: lon,
+        start_date: formatDate(startDate),
+        end_date: formatDate(safeEndDate),
+        daily: "temperature_2m_mean,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration,wind_speed_10m_mean",
+        timezone: "UTC",
     });
-    return response.data;
 };
 exports.getWeatherData = getWeatherData;

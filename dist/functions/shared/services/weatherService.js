@@ -33,16 +33,25 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWeatherFromDbOrFetch = void 0;
+exports.getWeatherFromDbOrFetch = exports.defaultWeatherStore = void 0;
 const mongodb = __importStar(require("../mongo/mongodb"));
 const hash = __importStar(require("../utils/hash"));
 const weather_1 = require("../weather/weather");
-const saveWeatherItems = async (_data, geometryHash) => {
+// Oletus: Atlas (käyttäjäflow), toimii kuten ennen
+exports.defaultWeatherStore = {
+    saveMany: async (items) => {
+        for (const item of items)
+            await mongodb.saveWeather(item);
+    },
+    getByRange: (geometryHash, start, end) => mongodb.getWeatherByRange(geometryHash, start, end),
+};
+const saveWeatherItems = async (_data, geometryHash, store) => {
     if (!_data?.daily?.time)
         return;
+    const items = [];
     for (let i = 0; i < _data.daily.time.length; i++) {
         const date = `${_data.daily.time[i]}T00:00:00Z`;
-        const item = {
+        items.push({
             sentinelid: `${date}_${geometryHash}`,
             date,
             geometryHash,
@@ -54,11 +63,11 @@ const saveWeatherItems = async (_data, geometryHash) => {
             temperature_2m_min: _data.daily.temperature_2m_min?.[i] ?? null,
             relative_humidity_2m_mean: _data.daily.relative_humidity_2m_mean?.[i] ?? null,
             wind_speed_10m_mean: _data.daily.wind_speed_10m_mean?.[i] ?? null,
-        };
-        await mongodb.saveWeather(item);
+        });
     }
+    await store.saveMany(items);
 };
-const getWeatherFromDbOrFetch = async (geometry, startDate, endDate) => {
+const getWeatherFromDbOrFetch = async (geometry, startDate, endDate, store = exports.defaultWeatherStore) => {
     const geometryHash = hash.sha256(geometry);
     const cutoff = (0, weather_1.getArchiveCutoff)();
     // Rajataan endDate kasvukauden loppuun tai cutoffiin — ei koskaan tulevaisuuteen
@@ -69,18 +78,18 @@ const getWeatherFromDbOrFetch = async (geometry, startDate, endDate) => {
     }
     try {
         // Haetaan kannasta vain tämän kasvukauden data
-        const existing = await mongodb.getWeatherByRange(geometryHash, startDate, safeEnd);
+        const existing = await store.getByRange(geometryHash, startDate, safeEnd);
         if (existing.length === 0) {
             console.log(`Weather: fetching ${startDate.toISOString().slice(0, 10)} → ${safeEnd.toISOString().slice(0, 10)}`);
             try {
                 const _data = await (0, weather_1.getWeatherData)(geometry, startDate, safeEnd);
                 if (_data)
-                    await saveWeatherItems(_data, geometryHash);
+                    await saveWeatherItems(_data, geometryHash, store);
             }
             catch (err) {
                 console.warn('Weather initial fetch failed:', err instanceof Error ? err.message : err);
             }
-            return await mongodb.getWeatherByRange(geometryHash, startDate, safeEnd);
+            return await store.getByRange(geometryHash, startDate, safeEnd);
         }
         // Alkupää: puuttuu dataa ennen vanhinta kannassa olevaa
         const oldestInDb = new Date(existing[0].date);
@@ -91,7 +100,7 @@ const getWeatherFromDbOrFetch = async (geometry, startDate, endDate) => {
             try {
                 const _data = await (0, weather_1.getWeatherData)(geometry, startDate, fetchEnd);
                 if (_data)
-                    await saveWeatherItems(_data, geometryHash);
+                    await saveWeatherItems(_data, geometryHash, store);
             }
             catch (err) {
                 console.warn('Weather older range fetch failed:', err instanceof Error ? err.message : err);
@@ -106,7 +115,7 @@ const getWeatherFromDbOrFetch = async (geometry, startDate, endDate) => {
             try {
                 const _data = await (0, weather_1.getWeatherData)(geometry, newStart, safeEnd);
                 if (_data)
-                    await saveWeatherItems(_data, geometryHash);
+                    await saveWeatherItems(_data, geometryHash, store);
             }
             catch (err) {
                 console.warn('Weather newer range fetch failed:', err instanceof Error ? err.message : err);
@@ -115,7 +124,7 @@ const getWeatherFromDbOrFetch = async (geometry, startDate, endDate) => {
         else {
             console.log(`Weather: ${startDate.toISOString().slice(0, 10)}–${safeEnd.toISOString().slice(0, 10)} up to date`);
         }
-        return await mongodb.getWeatherByRange(geometryHash, startDate, safeEnd);
+        return await store.getByRange(geometryHash, startDate, safeEnd);
     }
     catch (err) {
         console.error('getWeatherFromDbOrFetch failed:', err instanceof Error ? err.message : err);

@@ -18,5 +18,5 @@ const FieldParcelSchema = new mongoose_1.Schema({
 });
 FieldParcelSchema.index({ peruslohkotunnus: 1, vuosi: 1 }, { unique: true });
 FieldParcelSchema.index({ geometry: "2dsphere" });
-const FieldParcelModel = connections_1.localConnection.model("FieldParcel", FieldParcelSchema);
+const FieldParcelModel = connections_1.parcelConnection.model("FieldParcel", FieldParcelSchema);
 exports.FieldParcel = FieldParcelModel;

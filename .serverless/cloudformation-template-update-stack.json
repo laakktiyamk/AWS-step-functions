@@ -107,6 +107,96 @@
         "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-authLogin"
       }
     },
+    "FieldsListLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsList"
+      }
+    },
+    "FieldsDeleteLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsDelete"
+      }
+    },
+    "FieldsCropTypesLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsCropTypes"
+      }
+    },
+    "FieldsByLocationLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsByLocation"
+      }
+    },
+    "FieldsByBboxLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsByBbox"
+      }
+    },
+    "FieldsCropParcelsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsCropParcels"
+      }
+    },
+    "FieldsCropParcelsGeomLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsCropParcelsGeom"
+      }
+    },
+    "FieldsInfoLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsInfo"
+      }
+    },
+    "GeocodeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-geocode"
+      }
+    },
+    "GrowingSeasonLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-growingSeason"
+      }
+    },
+    "ValidateGeoJsonLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-validateGeoJson"
+      }
+    },
+    "NdviDatesApiLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-ndviDatesApi"
+      }
+    },
+    "NdviImageLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-ndviImage"
+      }
+    },
+    "NdviImagesLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-ndviImages"
+      }
+    },
+    "WeatherAllLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-weatherAll"
+      }
+    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -199,7 +289,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1790728874367-2026-09-30T00:41:14.367Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/distributor/handler.handler",
         "Runtime": "nodejs20.x",
@@ -208,10 +298,13 @@
         "Timeout": 10,
         "Environment": {
           "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
             "STEP_FUNCTION_ARN": {
               "Fn::Sub": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
-            },
-            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+            }
           }
         },
         "Role": {
@@ -232,7 +325,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1790728874367-2026-09-30T00:41:14.367Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/ndviDates/handler.handler",
         "Runtime": "nodejs20.x",
@@ -242,7 +335,9 @@
         "Environment": {
           "Variables": {
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
             "CDSE_CLIENT_ID": "sh-34802e7c-06a9-42e9-8634-946360428acf",
             "CDSE_CLIENT_SECRET": "LxBtVBTCavbt4EPv7SwTN8sT0ACjOiTp"
           }
@@ -265,7 +360,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1790728874367-2026-09-30T00:41:14.367Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/processor/handler.handler",
         "Runtime": "nodejs20.x",
@@ -275,7 +370,9 @@
         "Environment": {
           "Variables": {
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
             "CDSE_CLIENT_ID": "sh-34802e7c-06a9-42e9-8634-946360428acf",
             "CDSE_CLIENT_SECRET": "LxBtVBTCavbt4EPv7SwTN8sT0ACjOiTp"
           }
@@ -298,7 +395,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1790728874367-2026-09-30T00:41:14.367Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/auth/handler.register",
         "Runtime": "nodejs20.x",
@@ -308,7 +405,9 @@
         "Environment": {
           "Variables": {
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
-            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
           }
         },
         "Role": {
@@ -329,7 +428,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1790728874367-2026-09-30T00:41:14.367Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/auth/handler.login",
         "Runtime": "nodejs20.x",
@@ -339,7 +438,9 @@
         "Environment": {
           "Variables": {
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
-            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u"
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
           }
         },
         "Role": {
@@ -353,54 +454,701 @@
         "AuthLoginLogGroup"
       ]
     },
-    "DistributorLambdaVersionDYBIGhuF0jrPWkoLPOFdmm3rsCduCBm56hMGORVag": {
+    "FieldsListLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.list",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsList",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsListLogGroup"
+      ]
+    },
+    "FieldsDeleteLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.remove",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsDelete",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsDeleteLogGroup"
+      ]
+    },
+    "FieldsCropTypesLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.cropTypes",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsCropTypes",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsCropTypesLogGroup"
+      ]
+    },
+    "FieldsByLocationLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.byLocation",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsByLocation",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsByLocationLogGroup"
+      ]
+    },
+    "FieldsByBboxLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.byBbox",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsByBbox",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsByBboxLogGroup"
+      ]
+    },
+    "FieldsCropParcelsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.cropParcels",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsCropParcels",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsCropParcelsLogGroup"
+      ]
+    },
+    "FieldsCropParcelsGeomLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.cropParcelsGeom",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsCropParcelsGeom",
+        "MemorySize": 512,
+        "Timeout": 29,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsCropParcelsGeomLogGroup"
+      ]
+    },
+    "FieldsInfoLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/fields/handler.info",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-fieldsInfo",
+        "MemorySize": 256,
+        "Timeout": 29,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "FieldsInfoLogGroup"
+      ]
+    },
+    "GeocodeLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/geocode/handler.search",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-geocode",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GeocodeLogGroup"
+      ]
+    },
+    "GrowingSeasonLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/growingSeason/handler.get",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-growingSeason",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GrowingSeasonLogGroup"
+      ]
+    },
+    "ValidateGeoJsonLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/validate/handler.validate",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-validateGeoJson",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ValidateGeoJsonLogGroup"
+      ]
+    },
+    "NdviDatesApiLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/ndvi/handler.dates",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-ndviDatesApi",
+        "MemorySize": 1024,
+        "Timeout": 120,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "CDSE_CLIENT_ID": "sh-34802e7c-06a9-42e9-8634-946360428acf",
+            "CDSE_CLIENT_SECRET": "LxBtVBTCavbt4EPv7SwTN8sT0ACjOiTp"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NdviDatesApiLogGroup"
+      ]
+    },
+    "NdviImageLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/ndvi/handler.getImage",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-ndviImage",
+        "MemorySize": 512,
+        "Timeout": 29,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NdviImageLogGroup"
+      ]
+    },
+    "NdviImagesLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/ndvi/handler.getImages",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-ndviImages",
+        "MemorySize": 512,
+        "Timeout": 29,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NdviImagesLogGroup"
+      ]
+    },
+    "WeatherAllLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/weather/handler.getWeatherAll",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-weatherAll",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WeatherAllLogGroup"
+      ]
+    },
+    "DistributorLambdaVersionmoULpVCJirM2vjp4NRHPbkQ9BwbRXcpRKqXduVmgGYE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DistributorLambdaFunction"
         },
-        "CodeSha256": "yG9n58AQeCjhIM9+N2q3LjJzdAlaq3uk8NsTZvrjFlE="
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
       }
     },
-    "NdviDatesLambdaVersion4dexZsrG7lYQBQYLj2eoP2K86vp6nZ4yzagm5PQ": {
+    "NdviDatesLambdaVersionBVxB6kZtfiWHVfYFDTwpC4p5lucC8mGMeKbWl5KmM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NdviDatesLambdaFunction"
         },
-        "CodeSha256": "yG9n58AQeCjhIM9+N2q3LjJzdAlaq3uk8NsTZvrjFlE="
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
       }
     },
-    "ImageProcessorLambdaVersionIIxniGhgWBsKMNlYQ4XvUTY7IurBTo4rtnmixgh7cw": {
+    "ImageProcessorLambdaVersionKJL1oxskTXRKcxc4jrOWqioENWXIqazyKIsFHjyNE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ImageProcessorLambdaFunction"
         },
-        "CodeSha256": "yG9n58AQeCjhIM9+N2q3LjJzdAlaq3uk8NsTZvrjFlE="
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
       }
     },
-    "AuthRegisterLambdaVersion92483Z5NIEJCls3HaqezJmvmwZaKEz0DScIpDKwIPdY": {
+    "AuthRegisterLambdaVersionNBBiUgiF63q9OEaZYdgAnnrWnCb8qe0ZumdaHhzjUCU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AuthRegisterLambdaFunction"
         },
-        "CodeSha256": "yG9n58AQeCjhIM9+N2q3LjJzdAlaq3uk8NsTZvrjFlE="
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
       }
     },
-    "AuthLoginLambdaVersionslVGTmZubGxrT1dn2e1nQztW11szDOQbAQxbYBck5B8": {
+    "AuthLoginLambdaVersionldebI9D5m0xKcG4Ll5acMsrv3tUimUUXHrfVUYxk8k": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AuthLoginLambdaFunction"
         },
-        "CodeSha256": "yG9n58AQeCjhIM9+N2q3LjJzdAlaq3uk8NsTZvrjFlE="
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsListLambdaVersionj6exEAOJishgknFVesxSsdDed6ueO2bHj2xEAPaRI4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsListLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsDeleteLambdaVersionYNvIACQBRaVRi1UDnILua4f8VAGynknoVdrSDMAzZb0": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsDeleteLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsCropTypesLambdaVersionxlijQMc3QqpBR0vFgh697kJWSh6K8NdT6Tat9GQKOM": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsCropTypesLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsByLocationLambdaVersionFJ39Uvolvy1i6dOXBY2EJmnKKMg0In5WX9YKLN6XY": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsByLocationLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsByBboxLambdaVersion3IlbD6layzQYN5yEBbSelbca75fWiNUTfNCzSEvyJ4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsByBboxLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsCropParcelsLambdaVersionvoWkvz3tRYwVur3SLO8O6jyXnvRieujQy5rkzOOUYh8": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsCropParcelsLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsCropParcelsGeomLambdaVersion3H90i9U4pDrKudISTl1M7P6PmCMuO7vOsYF7uPZDknI": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsCropParcelsGeomLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "FieldsInfoLambdaVersionsWFzEsWawEi4whcvOvzvwlstpI1z7yi0ku2oIDJW50": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "FieldsInfoLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "GeocodeLambdaVersionhr2ijDWDKnHuPXgc72SbJrDiRzfhYUsELZls5nGno": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GeocodeLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "GrowingSeasonLambdaVersion4eiVJ1arXarY7LfBIYmzLElBRtliGvFkPXwhS07lOKo": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GrowingSeasonLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "ValidateGeoJsonLambdaVersionueFFBQo14fCGtlciwXanEiudps2azrww7MaEEZto": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ValidateGeoJsonLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "NdviDatesApiLambdaVersionhSxX7JG9i4u32X6yeidOBO8I0mLtTPsEPBU1NpBWts": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "NdviDatesApiLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "NdviImageLambdaVersionB0U3WzJnWYWtehd2P6ju6l1pmWmiIxWoRKVAb1RAYU": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "NdviImageLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "NdviImagesLambdaVersionHoWW39j6WNkTA3mK8u4x6B0Z2hjfGcMrsY2tc1trQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "NdviImagesLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+      }
+    },
+    "WeatherAllLambdaVersion61SuekS3ECROOa4KzoQ5c4IIAh1qmmsbcchydQ2C8": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WeatherAllLambdaFunction"
+        },
+        "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
       }
     },
     "ClassifierLambdaFunction": {
@@ -413,6 +1161,14 @@
         "FunctionName": "ndvi-pipeline-dev-classifier",
         "MemorySize": 3008,
         "Timeout": 120,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -424,7 +1180,7 @@
         "ClassifierLogGroup"
       ]
     },
-    "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4": {
+    "ClassifierLambdaVersiondMBBKrSCWgGoDmCGhfkwgMZqarVT06PUcVn5oYnU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
@@ -533,7 +1289,7 @@
       "Properties": {
         "DefinitionString": {
           "Fn::Sub": [
-            "{\n  \"StartAt\": \"distributor\",\n  \"States\": {\n    \"distributor\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${55d26fd665f88c35bf0401c8ae34b292}\",\n      \"Next\": \"forEachField\"\n    },\n    \"forEachField\": {\n      \"Type\": \"Map\",\n      \"ItemsPath\": \"$.fields\",\n      \"MaxConcurrency\": 2,\n      \"Iterator\": {\n        \"StartAt\": \"ndviDates\",\n        \"States\": {\n          \"ndviDates\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${397f01e77f6d3b69defba76229549779}\",\n            \"Next\": \"forEachDate\"\n          },\n          \"forEachDate\": {\n            \"Type\": \"Map\",\n            \"ItemsPath\": \"$.items\",\n            \"MaxConcurrency\": 5,\n            \"ItemSelector\": {\n              \"item.$\": \"$$.Map.Item.Value\",\n              \"geometry.$\": \"$.geometry\"\n            },\n            \"Iterator\": {\n              \"StartAt\": \"processor\",\n              \"States\": {\n                \"processor\": {\n                  \"Type\": \"Task\",\n                  \"Resource\": \"${334c6b46690b8522dddb3af2dc5d6151}\",\n                  \"End\": true\n                }\n              }\n            },\n            \"Next\": \"fieldDone\",\n            \"ResultPath\": null\n          },\n          \"fieldDone\": {\n            \"Type\": \"Pass\",\n            \"Parameters\": {\n              \"field_id.$\": \"$.field_id\",\n              \"done\": true\n            },\n            \"End\": true\n          }\n        }\n      },\n      \"End\": true\n    }\n  }\n}",
+            "{\n  \"StartAt\": \"distributor\",\n  \"States\": {\n    \"distributor\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${55d26fd665f88c35bf0401c8ae34b292}\",\n      \"Next\": \"forEachField\"\n    },\n    \"forEachField\": {\n      \"Type\": \"Map\",\n      \"ItemsPath\": \"$.fields\",\n      \"MaxConcurrency\": 2,\n      \"Iterator\": {\n        \"StartAt\": \"ndviDates\",\n        \"States\": {\n          \"ndviDates\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${397f01e77f6d3b69defba76229549779}\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              },\n              {\n                \"ErrorEquals\": [\n                  \"States.TaskFailed\"\n                ],\n                \"IntervalSeconds\": 10,\n                \"MaxAttempts\": 2,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\n                  \"States.ALL\"\n                ],\n                \"Next\": \"fieldDone\",\n                \"ResultPath\": null\n              }\n            ],\n            \"Next\": \"forEachDate\"\n          },\n          \"forEachDate\": {\n            \"Type\": \"Map\",\n            \"ItemsPath\": \"$.items\",\n            \"MaxConcurrency\": 5,\n            \"ItemSelector\": {\n              \"item.$\": \"$$.Map.Item.Value\",\n              \"geometry.$\": \"$.geometry\"\n            },\n            \"Iterator\": {\n              \"StartAt\": \"processor\",\n              \"States\": {\n                \"processor\": {\n                  \"Type\": \"Task\",\n                  \"Resource\": \"${334c6b46690b8522dddb3af2dc5d6151}\",\n                  \"Retry\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"Lambda.ServiceException\",\n                        \"Lambda.AWSLambdaException\",\n                        \"Lambda.SdkClientException\",\n                        \"Lambda.TooManyRequestsException\"\n                      ],\n                      \"IntervalSeconds\": 2,\n                      \"MaxAttempts\": 3,\n                      \"BackoffRate\": 2\n                    },\n                    {\n                      \"ErrorEquals\": [\n                        \"States.TaskFailed\"\n                      ],\n                      \"IntervalSeconds\": 5,\n                      \"MaxAttempts\": 2,\n                      \"BackoffRate\": 2\n                    }\n                  ],\n                  \"Catch\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"States.ALL\"\n                      ],\n                      \"Next\": \"dateFailed\",\n                      \"ResultPath\": null\n                    }\n                  ],\n                  \"End\": true\n                },\n                \"dateFailed\": {\n                  \"Type\": \"Pass\",\n                  \"End\": true\n                }\n              }\n            },\n            \"Next\": \"fieldDone\",\n            \"ResultPath\": null\n          },\n          \"fieldDone\": {\n            \"Type\": \"Pass\",\n            \"Parameters\": {\n              \"field_id.$\": \"$.field_id\",\n              \"done\": true\n            },\n            \"End\": true\n          }\n        }\n      },\n      \"End\": true\n    }\n  }\n}",
             {
               "55d26fd665f88c35bf0401c8ae34b292": {
                 "Fn::GetAtt": [
@@ -576,20 +1332,19 @@
         "CorsConfiguration": {
           "AllowHeaders": [
             "Content-Type",
-            "X-Amz-Date",
-            "Authorization",
-            "X-Api-Key",
-            "X-Amz-Security-Token",
-            "X-Amz-User-Agent",
-            "X-Amzn-Trace-Id"
+            "Authorization"
           ],
           "AllowMethods": [
-            "OPTIONS",
-            "POST"
+            "GET",
+            "POST",
+            "DELETE",
+            "OPTIONS"
           ],
           "AllowOrigins": [
-            "*"
-          ]
+            "http://localhost:5173",
+            "https://d22ng9fbvq00j3.cloudfront.net"
+          ],
+          "MaxAge": 600
         }
       }
     },
@@ -735,13 +1490,13 @@
         "TimeoutInMillis": 30000
       }
     },
-    "HttpApiRoutePostAuthRegister": {
+    "HttpApiRoutePostApiUserRegister": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {
           "Ref": "HttpApi"
         },
-        "RouteKey": "POST /auth/register",
+        "RouteKey": "POST /api/user/register",
         "Target": {
           "Fn::Join": [
             "/",
@@ -810,13 +1565,13 @@
         "TimeoutInMillis": 30000
       }
     },
-    "HttpApiRoutePostAuthLogin": {
+    "HttpApiRoutePostApiUserLogin": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {
           "Ref": "HttpApi"
         },
-        "RouteKey": "POST /auth/login",
+        "RouteKey": "POST /api/user/login",
         "Target": {
           "Fn::Join": [
             "/",
@@ -830,6 +1585,1131 @@
         }
       },
       "DependsOn": "HttpApiIntegrationAuthLogin"
+    },
+    "FieldsListLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsListLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsList": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsListLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiFields": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/fields",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsList"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsList"
+    },
+    "FieldsDeleteLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsDeleteLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsDelete": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsDeleteLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteDeleteApiFieldsIdVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "DELETE /api/fields/{id}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsDelete"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsDelete"
+    },
+    "FieldsCropTypesLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsCropTypesLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsCropTypes": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsCropTypesLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiFieldsCropDashtypes": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/fields/crop-types",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsCropTypes"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsCropTypes"
+    },
+    "FieldsByLocationLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsByLocationLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsByLocation": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsByLocationLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiFieldsByDashlocation": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/fields/by-location",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsByLocation"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsByLocation"
+    },
+    "FieldsByBboxLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsByBboxLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsByBbox": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsByBboxLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiFieldsByDashbbox": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/fields/by-bbox",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsByBbox"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsByBbox"
+    },
+    "FieldsCropParcelsLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsCropParcelsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsCropParcels": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsCropParcelsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiFieldsPeruslohkotunnusVarCropDashparcels": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/fields/{peruslohkotunnus}/crop-parcels",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsCropParcels"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsCropParcels"
+    },
+    "FieldsCropParcelsGeomLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsCropParcelsGeomLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsCropParcelsGeom": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsCropParcelsGeomLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiFieldsCropDashparcels": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/fields/crop-parcels",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsCropParcelsGeom"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsCropParcelsGeom"
+    },
+    "FieldsInfoLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "FieldsInfoLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationFieldsInfo": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "FieldsInfoLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiFieldsInfo": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/fields/info",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationFieldsInfo"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationFieldsInfo"
+    },
+    "GeocodeLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GeocodeLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationGeocode": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "GeocodeLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiGeocode": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/geocode",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationGeocode"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationGeocode"
+    },
+    "GrowingSeasonLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GrowingSeasonLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationGrowingSeason": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "GrowingSeasonLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiGrowingDashseason": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/growing-season",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationGrowingSeason"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationGrowingSeason"
+    },
+    "ValidateGeoJsonLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ValidateGeoJsonLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationValidateGeoJson": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "ValidateGeoJsonLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiValidateGeojson": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/validate/geojson",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationValidateGeoJson"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationValidateGeoJson"
+    },
+    "NdviDatesApiLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "NdviDatesApiLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationNdviDatesApi": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "NdviDatesApiLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiNdviDates": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/ndvi/dates",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationNdviDatesApi"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationNdviDatesApi"
+    },
+    "NdviImageLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "NdviImageLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationNdviImage": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "NdviImageLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetApiNdviImageSentinelidVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /api/ndvi/image/{sentinelid}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationNdviImage"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationNdviImage"
+    },
+    "NdviImagesLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "NdviImagesLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationNdviImages": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "NdviImagesLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiNdviImages": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/ndvi/images",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationNdviImages"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationNdviImages"
+    },
+    "WeatherAllLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WeatherAllLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationWeatherAll": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "WeatherAllLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiWeatherAll": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/weather/all",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationWeatherAll"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationWeatherAll"
     }
   },
   "Outputs": {
@@ -844,7 +2724,7 @@
     "DistributorLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DistributorLambdaVersionDYBIGhuF0jrPWkoLPOFdmm3rsCduCBm56hMGORVag"
+        "Ref": "DistributorLambdaVersionmoULpVCJirM2vjp4NRHPbkQ9BwbRXcpRKqXduVmgGYE"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-DistributorLambdaFunctionQualifiedArn"
@@ -853,7 +2733,7 @@
     "NdviDatesLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NdviDatesLambdaVersion4dexZsrG7lYQBQYLj2eoP2K86vp6nZ4yzagm5PQ"
+        "Ref": "NdviDatesLambdaVersionBVxB6kZtfiWHVfYFDTwpC4p5lucC8mGMeKbWl5KmM"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NdviDatesLambdaFunctionQualifiedArn"
@@ -862,7 +2742,7 @@
     "ImageProcessorLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ImageProcessorLambdaVersionIIxniGhgWBsKMNlYQ4XvUTY7IurBTo4rtnmixgh7cw"
+        "Ref": "ImageProcessorLambdaVersionKJL1oxskTXRKcxc4jrOWqioENWXIqazyKIsFHjyNE"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-ImageProcessorLambdaFunctionQualifiedArn"
@@ -871,7 +2751,7 @@
     "AuthRegisterLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AuthRegisterLambdaVersion92483Z5NIEJCls3HaqezJmvmwZaKEz0DScIpDKwIPdY"
+        "Ref": "AuthRegisterLambdaVersionNBBiUgiF63q9OEaZYdgAnnrWnCb8qe0ZumdaHhzjUCU"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-AuthRegisterLambdaFunctionQualifiedArn"
@@ -880,16 +2760,151 @@
     "AuthLoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AuthLoginLambdaVersionslVGTmZubGxrT1dn2e1nQztW11szDOQbAQxbYBck5B8"
+        "Ref": "AuthLoginLambdaVersionldebI9D5m0xKcG4Ll5acMsrv3tUimUUXHrfVUYxk8k"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-AuthLoginLambdaFunctionQualifiedArn"
       }
     },
+    "FieldsListLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsListLambdaVersionj6exEAOJishgknFVesxSsdDed6ueO2bHj2xEAPaRI4"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsListLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsDeleteLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsDeleteLambdaVersionYNvIACQBRaVRi1UDnILua4f8VAGynknoVdrSDMAzZb0"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsDeleteLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsCropTypesLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsCropTypesLambdaVersionxlijQMc3QqpBR0vFgh697kJWSh6K8NdT6Tat9GQKOM"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsCropTypesLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsByLocationLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsByLocationLambdaVersionFJ39Uvolvy1i6dOXBY2EJmnKKMg0In5WX9YKLN6XY"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsByLocationLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsByBboxLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsByBboxLambdaVersion3IlbD6layzQYN5yEBbSelbca75fWiNUTfNCzSEvyJ4"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsByBboxLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsCropParcelsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsCropParcelsLambdaVersionvoWkvz3tRYwVur3SLO8O6jyXnvRieujQy5rkzOOUYh8"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsCropParcelsGeomLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsCropParcelsGeomLambdaVersion3H90i9U4pDrKudISTl1M7P6PmCMuO7vOsYF7uPZDknI"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsGeomLambdaFunctionQualifiedArn"
+      }
+    },
+    "FieldsInfoLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "FieldsInfoLambdaVersionsWFzEsWawEi4whcvOvzvwlstpI1z7yi0ku2oIDJW50"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-FieldsInfoLambdaFunctionQualifiedArn"
+      }
+    },
+    "GeocodeLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GeocodeLambdaVersionhr2ijDWDKnHuPXgc72SbJrDiRzfhYUsELZls5nGno"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-GeocodeLambdaFunctionQualifiedArn"
+      }
+    },
+    "GrowingSeasonLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GrowingSeasonLambdaVersion4eiVJ1arXarY7LfBIYmzLElBRtliGvFkPXwhS07lOKo"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-GrowingSeasonLambdaFunctionQualifiedArn"
+      }
+    },
+    "ValidateGeoJsonLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ValidateGeoJsonLambdaVersionueFFBQo14fCGtlciwXanEiudps2azrww7MaEEZto"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-ValidateGeoJsonLambdaFunctionQualifiedArn"
+      }
+    },
+    "NdviDatesApiLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "NdviDatesApiLambdaVersionhSxX7JG9i4u32X6yeidOBO8I0mLtTPsEPBU1NpBWts"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-NdviDatesApiLambdaFunctionQualifiedArn"
+      }
+    },
+    "NdviImageLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "NdviImageLambdaVersionB0U3WzJnWYWtehd2P6ju6l1pmWmiIxWoRKVAb1RAYU"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-NdviImageLambdaFunctionQualifiedArn"
+      }
+    },
+    "NdviImagesLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "NdviImagesLambdaVersionHoWW39j6WNkTA3mK8u4x6B0Z2hjfGcMrsY2tc1trQ"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-NdviImagesLambdaFunctionQualifiedArn"
+      }
+    },
+    "WeatherAllLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WeatherAllLambdaVersion61SuekS3ECROOa4KzoQ5c4IIAh1qmmsbcchydQ2C8"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-WeatherAllLambdaFunctionQualifiedArn"
+      }
+    },
     "ClassifierLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ClassifierLambdaVersionwALUUrcwMBplRE2UI8JRdLkBBc4iMqBrF7oGirdPq4"
+        "Ref": "ClassifierLambdaVersiondMBBKrSCWgGoDmCGhfkwgMZqarVT06PUcVn5oYnU"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-ClassifierLambdaFunctionQualifiedArn"

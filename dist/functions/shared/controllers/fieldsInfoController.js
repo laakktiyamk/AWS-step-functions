@@ -41,7 +41,6 @@ const centroid_1 = __importDefault(require("@turf/centroid"));
 const rewind_1 = __importDefault(require("@turf/rewind"));
 const axios_1 = __importDefault(require("axios"));
 const mongodb = __importStar(require("../mongo/mongodb"));
-const getTokenUserId_1 = require("../utils/getTokenUserId");
 // ── Reverse geocoding Nominatimilla ──────────────────────────
 const reverseGeocode = async (lat, lon) => {
     try {
@@ -139,13 +138,7 @@ exports.getFieldInfo = getFieldInfo;
 // ── GET /api/fields ───────────────────────────────────────────
 const getFields = async (req, res, next) => {
     try {
-        const userId = (0, getTokenUserId_1.getUserId)(req);
-        console.log('####### userId tokenista:', userId);
-        if (!userId) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
-        console.log('Fetching fields for userId:', userId);
+        const userId = req.user._id;
         const data = await mongodb.getAllDateSets(userId);
         res.status(200).json(data);
     }
@@ -158,11 +151,7 @@ exports.getFields = getFields;
 // DELETE /api/fields/:id
 const deleteField = async (req, res, next) => {
     try {
-        const userId = (0, getTokenUserId_1.getUserId)(req);
-        if (!userId) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
+        const userId = req.user._id;
         const id = req.params.id;
         // Tarkistetaan että pelto kuuluu käyttäjälle
         const data = await mongodb.getDates(id);

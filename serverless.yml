@@ -10,7 +10,19 @@ provider:
   stage: dev
   profile: AWS-step-functions
   httpApi:
-    cors: true
+    cors:
+      allowedOrigins:
+        - http://localhost:5173
+        - https://d22ng9fbvq00j3.cloudfront.net
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - DELETE
+        - OPTIONS
+      maxAge: 600
   iam:
     role:
       statements:
@@ -25,6 +37,11 @@ provider:
         path: .
         file: Dockerfile.classifier
         platform: linux/amd64
+  environment:
+    MONGO_URI: ${env:MONGO_URI}
+    MONGO_AZURE_URI: ${env:MONGO_AZURE_URI}
+    SECRET: ${env:SECRET}
+    MML_API_KEY: ${env:MML_API_KEY}
 
 plugins:
   - serverless-step-functions
@@ -38,7 +55,6 @@ functions:
     timeout: 10
     environment:
       STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
-      SECRET: ${env:SECRET}   # JWT:n tarkistus (userId)
     events:
       - httpApi:
           path: /process
@@ -50,20 +66,16 @@ functions:
     memorySize: 512
     timeout: 120   # syncDates + sää usealta kasvukaudelta
     environment:
-      MONGO_URI: ${env:MONGO_URI}
-      SECRET: ${env:SECRET}
       CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
       CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
 
-  # Uusi nimi (ei enää "processor"): Docker-image -> zip vaatii uuden resurssin
+  # 
   imageProcessor:
     handler: dist/functions/processor/handler.handler
     runtime: nodejs20.x
     memorySize: 1024
     timeout: 60
     environment:
-      MONGO_URI: ${env:MONGO_URI}
-      SECRET: ${env:SECRET}
       CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
       CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
 
@@ -78,12 +90,9 @@ functions:
     runtime: nodejs20.x
     memorySize: 256
     timeout: 10
-    environment:
-      MONGO_URI: ${env:MONGO_URI}
-      SECRET: ${env:SECRET}
     events:
       - httpApi:
-          path: /auth/register
+          path: /api/user/register
           method: post
 
   authLogin:
@@ -91,12 +100,161 @@ functions:
     runtime: nodejs20.x
     memorySize: 256
     timeout: 10
-    environment:
-      MONGO_URI: ${env:MONGO_URI}
-      SECRET: ${env:SECRET}
     events:
       - httpApi:
-          path: /auth/login
+          path: /api/user/login
+          method: post
+
+  fieldsList:
+    handler: dist/functions/fields/handler.list
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields
+          method: get
+
+  fieldsDelete:
+    handler: dist/functions/fields/handler.remove
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{id}
+          method: delete
+
+  fieldsCropTypes:
+    handler: dist/functions/fields/handler.cropTypes
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/crop-types
+          method: get
+
+  fieldsByLocation:
+    handler: dist/functions/fields/handler.byLocation
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/by-location
+          method: get
+
+  fieldsByBbox:
+    handler: dist/functions/fields/handler.byBbox
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/by-bbox
+          method: get
+
+  fieldsCropParcels:
+    handler: dist/functions/fields/handler.cropParcels
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{peruslohkotunnus}/crop-parcels
+          method: get
+
+  fieldsCropParcelsGeom:
+    handler: dist/functions/fields/handler.cropParcelsGeom
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/fields/crop-parcels
+          method: post
+
+  fieldsInfo:
+    handler: dist/functions/fields/handler.info
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/fields/info
+          method: post
+
+  geocode:
+    handler: dist/functions/geocode/handler.search
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/geocode
+          method: get
+
+  growingSeason:
+    handler: dist/functions/growingSeason/handler.get
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/growing-season
+          method: get
+
+  validateGeoJson:
+    handler: dist/functions/validate/handler.validate
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/validate/geojson
+          method: post
+
+  ndviDatesApi:
+    handler: dist/functions/ndvi/handler.dates
+    runtime: nodejs20.x
+    memorySize: 1024
+    timeout: 120
+    environment:
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+    events:
+      - httpApi:
+          path: /api/ndvi/dates
+          method: post
+
+  ndviImage:
+    handler: dist/functions/ndvi/handler.getImage
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/ndvi/image/{sentinelid}
+          method: get
+
+  ndviImages:
+    handler: dist/functions/ndvi/handler.getImages
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/ndvi/images
+          method: post
+  weatherAll:
+    handler: dist/functions/weather/handler.getWeatherAll
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/weather/all
           method: post
 
 stepFunctions:
@@ -123,6 +281,24 @@ stepFunctions:
                   Type: Task
                   Resource:
                     Fn::GetAtt: [NdviDatesLambdaFunction, Arn]
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
+                    - ErrorEquals: [States.TaskFailed]
+                      IntervalSeconds: 10
+                      MaxAttempts: 2
+                      BackoffRate: 2
+                  Catch:
+                    # Yksi epäonnistunut pelto ei kaada koko erää
+                    - ErrorEquals: [States.ALL]
+                      ResultPath: null
+                      Next: fieldDone
                   Next: forEachDate
 
                 forEachDate:
@@ -140,6 +316,27 @@ stepFunctions:
                         Type: Task
                         Resource:
                           Fn::GetAtt: [ImageProcessorLambdaFunction, Arn]
+                        Retry:
+                          - ErrorEquals:
+                              - Lambda.ServiceException
+                              - Lambda.AWSLambdaException
+                              - Lambda.SdkClientException
+                              - Lambda.TooManyRequestsException
+                            IntervalSeconds: 2
+                            MaxAttempts: 3
+                            BackoffRate: 2
+                          - ErrorEquals: [States.TaskFailed]
+                            IntervalSeconds: 5
+                            MaxAttempts: 2
+                            BackoffRate: 2
+                        Catch:
+                          # Yksi epäonnistunut päivämäärä ei kaada muita
+                          - ErrorEquals: [States.ALL]
+                            ResultPath: null
+                            Next: dateFailed
+                        End: true
+                      dateFailed:
+                        Type: Pass
                         End: true
                   Next: fieldDone
 

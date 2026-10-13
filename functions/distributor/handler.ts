@@ -3,18 +3,6 @@ import jwt from "jsonwebtoken";
 
 const sfn = new SFNClient({ region: "eu-north-1" });
 
-const getBbox = (geometry: any): number[] => {
-  const coords: number[][] = [];
-  const collect = (c: any) => {
-    if (typeof c[0] === "number") coords.push(c);
-    else c.forEach(collect);
-  };
-  collect(geometry.coordinates);
-  const lons = coords.map(c => c[0]);
-  const lats = coords.map(c => c[1]);
-  return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
-};
-
 // Lukee käyttäjän id:n Authorization-headerin JWT:stä (HTTP API antaa headerit pienillä kirjaimilla)
 const getUserIdFromEvent = (event: any): string => {
   const header: string = event.headers?.authorization || event.headers?.Authorization || "";
@@ -36,29 +24,9 @@ const response = (statusCode: number, body: any) => ({
 export const handler = async (event: any) => {
   const isApiCall = !!event.requestContext || !!event.body;
 
-  // ── Step Functions -kutsu (ensimmäinen tila) tai suora testikutsu ──
+  // ── Step Functions -kutsu (ensimmäinen tila): palautetaan fields sellaisenaan ──
   if (!isApiCall) {
-    if (event.fields) return { fields: event.fields };
-    const start = event.start_date || event.start;
-    const end = event.end_date || event.end;
-    const geojson = event.geojson;
-    if (!geojson) return event;
-
-    let fields: any[] = [];
-    if (Array.isArray(geojson)) {
-      fields = geojson.map((g: any, i: number) => {
-        const geometry = g.geometry || g;
-        return { field_id: `field-${i + 1}`, geojson: geometry, geometry, bbox: getBbox(geometry), start, end, start_date: start };
-      });
-    } else if (geojson.type === "FeatureCollection") {
-      fields = geojson.features.map((f: any, i: number) => {
-        const geometry = f.geometry || f;
-        return { field_id: f.properties?.id || `field-${i + 1}`, geojson: geometry, geometry, bbox: getBbox(geometry), start, end, start_date: start };
-      });
-    } else {
-      fields = [{ field_id: "field-1", geojson, geometry: geojson, bbox: getBbox(geojson), start, end, start_date: start }];
-    }
-    return { fields };
+    return { fields: event.fields };
   }
 
   // ── HTTP API: POST /process ──
@@ -67,33 +35,50 @@ export const handler = async (event: any) => {
 
   let body: any;
   try {
-    body = typeof event.body === "string" ? JSON.parse(event.body) : event.body || event;
+    body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
   } catch {
     return response(400, { error: "invalid JSON body" });
   }
 
-  let geometry: any;
-  try {
-    geometry = typeof body.geometry === "string" ? JSON.parse(body.geometry) : body.geometry;
-  } catch {
-    return response(400, { error: "invalid geometry" });
+  if (!body?.start_date) {
+    return response(400, { error: "start_date required" });
   }
 
-  if (!geometry || !body.start_date) {
-    return response(400, { error: "geometry and start_date required" });
+  // fields-taulukko; vanha muoto (geometry ylätasolla) kääritään yhden alkion taulukoksi
+  const items: any[] = Array.isArray(body.fields)
+    ? body.fields
+    : body.geometry
+      ? [{ geometry: body.geometry, name: body.name, kasvulohkot: body.kasvulohkot }]
+      : [];
+
+  if (items.length === 0) {
+    return response(400, { error: "fields required" });
+  }
+
+  const fields: any[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    let geometry: any;
+    try {
+      geometry = typeof item.geometry === "string" ? JSON.parse(item.geometry) : item.geometry;
+    } catch {
+      return response(400, { error: `invalid geometry in field ${i + 1}` });
+    }
+    if (!geometry) {
+      return response(400, { error: `geometry required in field ${i + 1}` });
+    }
+    fields.push({
+      field_id: `field-${i + 1}`,
+      geometry,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      name: item.name ?? "",
+      userId,
+      kasvulohkot: item.kasvulohkot ?? []
+    });
   }
 
   const stateMachineArn = process.env.STEP_FUNCTION_ARN as string;
-
-  const fields = [{
-    field_id: "field-1",
-    geometry,
-    start_date: body.start_date,
-    end_date: body.end_date,
-    name: body.name ?? "",
-    userId,
-    kasvulohkot: body.kasvulohkot ?? []
-  }];
 
   const result = await sfn.send(new StartExecutionCommand({
     stateMachineArn,

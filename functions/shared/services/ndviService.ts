@@ -2,12 +2,14 @@ import rewind from '@turf/rewind'
 import * as hash from '../utils/hash'
 import * as dateTime from '../utils/dateTime'
 import * as mongodb from '../mongo/mongodb'
+import { MlData } from '../mongo/models/MlData'
 import { getStatistics } from '../sentinelhub/getStatistics_CDSE'
 import { getImage } from '../sentinelhub/getImage_CDSE'
 import * as imageDataRef from '../utils/image/getImageData'
 import growingSeason from '../settings/growingSeason.json'
 import isDateInGrowingSeason from '../utils/isdateingrowingseason'
 import { getWeatherFromDbOrFetch } from './weatherService'
+import type { WeatherStore } from './weatherService'
 import { getGrowingSeasons } from '../utils/growingSeasonUtils'
 
 const geoUtils = require('../utils/geoUtils')
@@ -58,8 +60,13 @@ export interface SyncDatesResult {
   newDates: SentinelDate[]
 }
 
+export interface SeasonCount {
+  year: number
+  count: number
+}
+
 // ============================================================
-// Concurrency limiter (REST API käyttää, Step Functions ei)
+// Concurrency limiter
 // ============================================================
 
 function createLimit(concurrency: number) {
@@ -90,13 +97,15 @@ function createLimit(concurrency: number) {
 
 // ============================================================
 // getSentinelDates — hakee statistiikat CDSE:ltä
+// throwOnError: true → hakuvirhe heitetään eikä muutu tyhjäksi listaksi
 // ============================================================
 
 export const getSentinelDates = async (
   geometry: any,
   fromTime: Date | null,
   toTime: Date,
-  authToken: string
+  authToken: string,
+  throwOnError: boolean = false
 ): Promise<SentinelDate[]> => {
   let stats: SentinelStat[] = []
 
@@ -105,9 +114,11 @@ export const getSentinelDates = async (
       geometry,
       fromTime?.toISOString() ?? '',
       toTime.toISOString(),
-      authToken
+      authToken,
+      throwOnError
     ) as unknown as SentinelStat[]
   } catch (e: any) {
+    if (throwOnError) throw e
     console.error('getSentinelDates error:', e.error ? e.error.message : e.message)
     return []
   }
@@ -131,6 +142,80 @@ export const getSentinelDates = async (
     }
   }
   return result
+}
+
+// ============================================================
+// getSentinelDatesBySeason — hakee annetut jaksot rinnakkain.
+// Palauttaa myös havaintomäärät jaksoittain (ML käyttää).
+// Epäonnistunut jakso heittää virheen (ei tulkita "ei dataa" -tilaksi).
+// ============================================================
+
+export const getSentinelDatesBySeason = async (
+  geometry: any,
+  seasons: Season[],
+  authToken: string,
+  concurrency: number = 3
+): Promise<{ dates: SentinelDate[]; seasonCounts: SeasonCount[] }> => {
+  const limit = createLimit(concurrency)
+
+  const settled = await Promise.allSettled(
+    seasons.map(s => limit(() => getSentinelDates(geometry, s.start, s.end, authToken, true)))
+  )
+
+  const dates: SentinelDate[] = []
+  const seasonCounts: SeasonCount[] = []
+  const failed: number[] = []
+
+  settled.forEach((res, i) => {
+    const year = seasons[i].start.getUTCFullYear()
+    if (res.status === 'fulfilled') {
+      dates.push(...res.value)
+      seasonCounts.push({ year, count: res.value.length })
+    } else {
+      failed.push(year)
+      console.error(`Season ${year} failed:`, res.reason?.message ?? res.reason)
+    }
+  })
+
+  if (failed.length > 0) {
+    throw new Error(`Statistics fetch failed for seasons: ${failed.join(', ')}`)
+  }
+
+  dates.sort((a, b) => b.generationtime.localeCompare(a.generationtime))
+  return { dates, seasonCounts }
+}
+
+// ============================================================
+// getSentinelDatesForRange — REST-polku: jakaa annetun välin
+// kasvukausiin (talvia ei haeta) ja hakee ne rinnakkain.
+// Jos jokin kausi epäonnistuu, palautetaan [] eikä tallenneta mitään,
+// jotta syncDates yrittää samaa väliä uudelleen (ei jää aukkoa dataan).
+// ============================================================
+
+const getSentinelDatesForRange = async (
+  geometry: any,
+  fromTime: Date | null,
+  toTime: Date,
+  authToken: string
+): Promise<SentinelDate[]> => {
+  if (!fromTime) return getSentinelDates(geometry, fromTime, toTime, authToken)
+
+  const ranges: Season[] = getGrowingSeasons(fromTime.getUTCFullYear(), toTime.getUTCFullYear())
+    .map(s => ({
+      start: s.start > fromTime ? s.start : fromTime,
+      end:   s.end   < toTime   ? s.end   : toTime,
+    }))
+    .filter(r => r.start < r.end)
+
+  if (ranges.length === 0) return []
+
+  try {
+    const { dates } = await getSentinelDatesBySeason(geometry, ranges, authToken)
+    return dates
+  } catch (e: any) {
+    console.error('getSentinelDatesForRange failed:', e.message)
+    return []
+  }
 }
 
 // ============================================================
@@ -169,23 +254,26 @@ const fetchAndSaveImages = async (
   dates: SentinelDate[],
   geometry: any,
   authToken: string
-): Promise<void> => {
+): Promise<SentinelDate[]> => {
   const limit = createLimit(5)
-  await Promise.all(
+  const results = await Promise.all(
     dates.map(item => limit(() => fetchAndSaveImage(item, geometry, authToken)))
   )
+  return dates.filter((_, i) => results[i])
 }
 
 // ============================================================
 // fetchWeather — hakee sään rinnakkain kasvukausittain
+// store: oletus Atlas (käyttäjäflow), ML-ajo antaa ML_weather-tallennuksen
 // ============================================================
 
 export const fetchWeather = async (
   geometry: any,
-  seasons: Season[]
+  seasons: Season[],
+  store?: WeatherStore
 ): Promise<void> => {
   await Promise.all(
-    seasons.map(({ start, end }) => getWeatherFromDbOrFetch(geometry, start, end))
+    seasons.map(({ start, end }) => getWeatherFromDbOrFetch(geometry, start, end, store))
   )
 }
 
@@ -196,7 +284,7 @@ export const fetchWeather = async (
 
 export const fetchAndSaveDates = async (
   geometry: any,
-  fromTime: Date | null,
+  fromTime: Date,
   toTime: Date,
   authToken: string,
   name: string = '',
@@ -206,22 +294,24 @@ export const fetchAndSaveDates = async (
 ): Promise<SentinelDate[]> => {
   const id = hash.sha256(geometry)
   const area = geoUtils.getAreaFromGeometry(geometry)
-
   const existing = await mongodb.getDates(id)
+
   if (!existing) {
     await mongodb.saveDates(id, [], geometry, area ?? 0, name, userId, kasvulohkot)
   }
 
-  const dates = await getSentinelDates(geometry, fromTime, toTime, authToken)
+  const dates = await getSentinelDatesForRange(geometry, fromTime, toTime, authToken)
   console.log(dates.length, 'dates fetched')
   if (dates.length === 0) return []
 
+  // MUUTOS: tallennetaan vain päivämäärät, joiden kuva onnistui
+  let datesToSave: SentinelDate[] = dates
   if (saveImages) {
-    await fetchAndSaveImages(dates, geometry, authToken)
+    datesToSave = await fetchAndSaveImages(dates, geometry, authToken)
   }
 
   const savedDates = dateTime.sortByDateTime(
-    dates.map(({ ndviClassPercentages, ...rest }) => rest),
+    datesToSave.map(({ ndviClassPercentages, ...rest }) => rest),   // MUUTOS: dates -> datesToSave
     'generationtime',
     'desc'
   )
@@ -233,7 +323,7 @@ export const fetchAndSaveDates = async (
     await mongodb.updateDates(id, newDates, userId)
   }
 
-  return dates
+  return datesToSave   // palautetaan vain onnistuneet
 }
 
 // ============================================================
@@ -293,6 +383,51 @@ export const syncDates = async (
   }
 
   return { geometry: normalizedGeometry, seasons, newDates }
+}
+
+// ============================================================
+// syncMlDates — ML-ajo: hakee NDVI-tilastot kausi kerrallaan ja
+// tallentaa ML_data-kokoelmaan. Ei kuvia, ei käyttäjää, ei dates-kokoelmaa.
+// Jo haettua AOI:ta ei haeta uudelleen (ajon voi toistaa turvallisesti).
+// ============================================================
+
+export const syncMlDates = async (
+  geometry: any,
+  startDate: Date,
+  endDate: Date,
+  authToken: string,
+  batchId: string = '',
+  kasvulohkot: any[] = [],
+  meta: { peruslohkotunnus?: string; vuosi?: string; pinta_ala?: number } = {}
+): Promise<{ geometry: any; seasons: Season[] } | null> => {
+  const normalizedGeometry = rewind(geometry, { mutate: false })
+  const geometryHash = hash.sha256(normalizedGeometry)
+
+  // UTC-vuodet, jotta tulos on sama paikallisesti ja Lambdassa
+  const seasons = getGrowingSeasons(startDate.getUTCFullYear(), endDate.getUTCFullYear())
+  if (seasons.length === 0) return null
+
+  console.log('syncMlDates: findOne')
+  const existing: any = await MlData.findOne({ geometryHash }).select('dates').lean()
+  console.log('syncMlDates: findOne done', existing?.dates?.length ?? 0)
+  const alreadyFetched = (existing?.dates?.length ?? 0) > 0
+
+  if (!alreadyFetched) {
+    console.log('syncMlDates: stats')
+    const { dates, seasonCounts } = await getSentinelDatesBySeason(
+      normalizedGeometry, seasons, authToken
+    )
+    console.log('syncMlDates: stats done', dates.length)
+    if (dates.length === 0) return null   // ei kirjoiteta tyhjää dokumenttia
+
+    await MlData.updateOne(
+      { geometryHash },
+      { $set: { geometryHash, batchId, geometry: normalizedGeometry, kasvulohkot, dates, seasonCounts, ...meta } },
+      { upsert: true }
+    )
+  }
+
+  return { geometry: normalizedGeometry, seasons }
 }
 
 // ============================================================

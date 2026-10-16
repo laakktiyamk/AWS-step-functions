@@ -10,4 +10,5 @@ echo "Logging to ECR..."
 aws ecr get-login-password --region eu-north-1 --profile AWS-step-functions | docker login --username AWS --password-stdin 223057859479.dkr.ecr.eu-north-1.amazonaws.com
 
 echo "Login Succeeded, deploying..."
+echo "Muista avata Docker Destop"
 DOCKER_BUILDKIT=0 npx serverless deploy --aws-profile AWS-step-functions

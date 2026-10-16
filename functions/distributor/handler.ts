@@ -1,6 +1,13 @@
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import jwt from "jsonwebtoken";
 
+import { geometryHash } from "../shared/utils/hash";
+import { validateGeometry } from "../shared/utils/validateGeometry";
+
+import mongoose from "mongoose";
+import { connectDb } from "../shared/mongo/db";
+import { Job } from "../shared/mongo/models/Job";
+
 const sfn = new SFNClient({ region: "eu-north-1" });
 
 // Lukee käyttäjän id:n Authorization-headerin JWT:stä (HTTP API antaa headerit pienillä kirjaimilla)
@@ -55,7 +62,12 @@ export const handler = async (event: any) => {
     return response(400, { error: "fields required" });
   }
 
+  const jobObjectId = new mongoose.Types.ObjectId();
+  const jobId = jobObjectId.toString();
+
   const fields: any[] = [];
+  const seen = new Set<string>();
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     let geometry: any;
@@ -64,11 +76,21 @@ export const handler = async (event: any) => {
     } catch {
       return response(400, { error: `invalid geometry in field ${i + 1}` });
     }
-    if (!geometry) {
-      return response(400, { error: `geometry required in field ${i + 1}` });
+
+    const errors = validateGeometry(geometry);
+    if (errors.length > 0) {
+      return response(400, { error: `invalid geometry in field ${i + 1}`, details: errors });
     }
+
+    const aoiId = geometryHash(geometry);
+
+    if (seen.has(aoiId)) continue; // sama geometria kahdesti samassa pyynnössä
+    seen.add(aoiId);
+
     fields.push({
-      field_id: `field-${i + 1}`,
+      field_id: `field-${fields.length + 1}`,
+      aoiId,
+      jobId,
       geometry,
       start_date: body.start_date,
       end_date: body.end_date,
@@ -80,13 +102,31 @@ export const handler = async (event: any) => {
 
   const stateMachineArn = process.env.STEP_FUNCTION_ARN as string;
 
-  const result = await sfn.send(new StartExecutionCommand({
-    stateMachineArn,
-    input: JSON.stringify({ fields })
-  }));
+  await connectDb();
+  await Job.create({
+    _id: jobObjectId,
+    userId,
+    total: fields.length
+  });
 
-  return response(200, {
-    message: "NDVI workflow started",
-    executionArn: result.executionArn
+  let executionArn: string | undefined;
+
+  try {
+    const result = await sfn.send(new StartExecutionCommand({
+      stateMachineArn,
+      input: JSON.stringify({ fields })
+    }));
+    executionArn = result.executionArn;
+  } catch (err) {
+    console.error("StartExecution failed:", err);
+    await Job.updateOne({ _id: jobObjectId }, { status: "failed" });
+    return response(500, { error: "failed to start workflow" });
+  }
+
+  return response(202, {
+    jobId,
+    total: fields.length,
+    aoiIds: fields.map((f) => f.aoiId),
+    executionArn
   });
 };

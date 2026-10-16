@@ -5,6 +5,10 @@ import { mlWeatherStore } from '../shared/mongo/models/MlWeather'
 import { syncDates, syncMlDates, fetchWeather } from '../shared/services/ndviService'
 
 export const handler = async (event: any) => {
+  
+  // testiä varten
+  //if (event.name === "FAIL") throw new Error("testivirhe");
+
   await connectDb()
   const authToken = await authenticate()
 
@@ -41,7 +45,9 @@ export const handler = async (event: any) => {
     return {
       geometry: mlResult?.geometry ?? geometry,
       field_id: event.field_id,
-      items: []   // tyhjä lista: forEachDate-Map ei tee mitään
+      jobId: event.jobId,
+      aoiId: event.aoiId,
+      items: []
     }
   }
 
@@ -57,7 +63,7 @@ export const handler = async (event: any) => {
   )
 
   if (!result) {
-    return { geometry, field_id: event.field_id, items: [] }
+    return { geometry, field_id: event.field_id, jobId: event.jobId, aoiId: event.aoiId, items: [] }
   }
 
   await fetchWeather(result.geometry, result.seasons)
@@ -65,6 +71,8 @@ export const handler = async (event: any) => {
   return {
     geometry: result.geometry,
     field_id: event.field_id,
+    jobId: event.jobId,
+    aoiId: event.aoiId,
     items: result.newDates
   }
 }

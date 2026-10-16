@@ -30,6 +30,10 @@ provider:
           Action:
             - states:StartExecution
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: "arn:aws:execute-api:*:*:*/@connections/*"
   ecr:
     images:
       # processor-image poistettu: processor on nyt Node.js-funktio
@@ -59,6 +63,22 @@ functions:
       - httpApi:
           path: /process
           method: post
+
+  wsConnect:
+    handler: dist/functions/websocket/handler.connect
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - websocket:
+          route: $connect
+  notifier:
+    handler: dist/functions/notifier/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    environment:
+      WS_ENDPOINT: https://sqw05i0dc5.execute-api.eu-north-1.amazonaws.com/dev
 
   ndviDates:
     handler: dist/functions/ndviDates/handler.handler
@@ -184,6 +204,16 @@ functions:
       - httpApi:
           path: /api/fields/info
           method: post
+  
+  jobGet:
+    handler: dist/functions/jobs/handler.get
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/jobs/{jobId}
+          method: get
 
   geocode:
     handler: dist/functions/geocode/handler.search
@@ -298,7 +328,7 @@ stepFunctions:
                     # Yksi epäonnistunut pelto ei kaada koko erää
                     - ErrorEquals: [States.ALL]
                       ResultPath: null
-                      Next: fieldDone
+                      Next: fieldFailed
                   Next: forEachDate
 
                 forEachDate:
@@ -341,9 +371,42 @@ stepFunctions:
                   Next: fieldDone
 
                 fieldDone:
-                  Type: Pass
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [NotifierLambdaFunction, Arn]
                   Parameters:
+                    jobId.$: $.jobId
+                    aoiId.$: $.aoiId
                     field_id.$: $.field_id
-                    done: true
+                    status: done
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
+                  End: true
+
+                fieldFailed:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [NotifierLambdaFunction, Arn]
+                  Parameters:
+                    jobId.$: $.jobId
+                    aoiId.$: $.aoiId
+                    field_id.$: $.field_id
+                    status: failed
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
                   End: true
             End: true

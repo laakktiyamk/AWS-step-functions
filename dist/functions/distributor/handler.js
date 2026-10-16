@@ -6,6 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const client_sfn_1 = require("@aws-sdk/client-sfn");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const hash_1 = require("../shared/utils/hash");
+const validateGeometry_1 = require("../shared/utils/validateGeometry");
+const mongoose_1 = __importDefault(require("mongoose"));
+const db_1 = require("../shared/mongo/db");
+const Job_1 = require("../shared/mongo/models/Job");
 const sfn = new client_sfn_1.SFNClient({ region: "eu-north-1" });
 // Lukee käyttäjän id:n Authorization-headerin JWT:stä (HTTP API antaa headerit pienillä kirjaimilla)
 const getUserIdFromEvent = (event) => {
@@ -54,7 +59,10 @@ const handler = async (event) => {
     if (items.length === 0) {
         return response(400, { error: "fields required" });
     }
+    const jobObjectId = new mongoose_1.default.Types.ObjectId();
+    const jobId = jobObjectId.toString();
     const fields = [];
+    const seen = new Set();
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         let geometry;
@@ -64,11 +72,18 @@ const handler = async (event) => {
         catch {
             return response(400, { error: `invalid geometry in field ${i + 1}` });
         }
-        if (!geometry) {
-            return response(400, { error: `geometry required in field ${i + 1}` });
+        const errors = (0, validateGeometry_1.validateGeometry)(geometry);
+        if (errors.length > 0) {
+            return response(400, { error: `invalid geometry in field ${i + 1}`, details: errors });
         }
+        const aoiId = (0, hash_1.geometryHash)(geometry);
+        if (seen.has(aoiId))
+            continue; // sama geometria kahdesti samassa pyynnössä
+        seen.add(aoiId);
         fields.push({
-            field_id: `field-${i + 1}`,
+            field_id: `field-${fields.length + 1}`,
+            aoiId,
+            jobId,
             geometry,
             start_date: body.start_date,
             end_date: body.end_date,
@@ -78,13 +93,30 @@ const handler = async (event) => {
         });
     }
     const stateMachineArn = process.env.STEP_FUNCTION_ARN;
-    const result = await sfn.send(new client_sfn_1.StartExecutionCommand({
-        stateMachineArn,
-        input: JSON.stringify({ fields })
-    }));
-    return response(200, {
-        message: "NDVI workflow started",
-        executionArn: result.executionArn
+    await (0, db_1.connectDb)();
+    await Job_1.Job.create({
+        _id: jobObjectId,
+        userId,
+        total: fields.length
+    });
+    let executionArn;
+    try {
+        const result = await sfn.send(new client_sfn_1.StartExecutionCommand({
+            stateMachineArn,
+            input: JSON.stringify({ fields })
+        }));
+        executionArn = result.executionArn;
+    }
+    catch (err) {
+        console.error("StartExecution failed:", err);
+        await Job_1.Job.updateOne({ _id: jobObjectId }, { status: "failed" });
+        return response(500, { error: "failed to start workflow" });
+    }
+    return response(202, {
+        jobId,
+        total: fields.length,
+        aoiIds: fields.map((f) => f.aoiId),
+        executionArn
     });
 };
 exports.handler = handler;

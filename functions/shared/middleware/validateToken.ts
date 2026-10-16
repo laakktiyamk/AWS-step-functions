@@ -49,14 +49,23 @@ declare global {
  *
  * @returns A 401 response on failure, or `next()` on success.
  */
+
+export const verifyToken = (token: string): DecodedUser | null => {
+  try {
+    return jwt.verify(token, process.env.SECRET as string) as DecodedUser;
+  } catch {
+    return null;
+  }
+};
+
 export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
-  
-  
-  const url = req.originalUrl; 
+
+
+  const url = req.originalUrl;
   if (url === "/" || url.includes("login") || url.includes("register")) {
     return next();
   }
-  
+
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -64,7 +73,8 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.SECRET as string) as DecodedUser;
+    const decoded = verifyToken(token);
+    if (!decoded) return res.status(401).json({ message: "Invalid or expired token." });
     req.user = decoded;
     next();
   } catch (err) {

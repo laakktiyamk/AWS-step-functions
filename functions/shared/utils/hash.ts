@@ -17,3 +17,8 @@ export const sha256 = (geometry: unknown | string): string => {
   const hash = crypto.createHash("sha256").update(jsonString).digest("hex");
   return hash;
 };
+
+import rewind from "@turf/rewind";
+
+export const geometryHash = (geometry: any): string =>
+  sha256(rewind(geometry, { mutate: false }));

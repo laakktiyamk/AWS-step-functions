@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticateUser = void 0;
+exports.authenticateUser = exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Middleware that authenticates a user using a JWT token.
@@ -23,6 +23,15 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
  *
  * @returns A 401 response on failure, or `next()` on success.
  */
+const verifyToken = (token) => {
+    try {
+        return jsonwebtoken_1.default.verify(token, process.env.SECRET);
+    }
+    catch {
+        return null;
+    }
+};
+exports.verifyToken = verifyToken;
 const authenticateUser = (req, res, next) => {
     const url = req.originalUrl;
     if (url === "/" || url.includes("login") || url.includes("register")) {
@@ -33,7 +42,9 @@ const authenticateUser = (req, res, next) => {
         return res.status(401).json({ message: "Token not found." });
     }
     try {
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.SECRET);
+        const decoded = (0, exports.verifyToken)(token);
+        if (!decoded)
+            return res.status(401).json({ message: "Invalid or expired token." });
         req.user = decoded;
         next();
     }

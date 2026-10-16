@@ -38,6 +38,13 @@
                 "states:StartExecution"
               ],
               "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "execute-api:ManageConnections"
+              ],
+              "Resource": "arn:aws:execute-api:*:*:*/@connections/*"
             }
           ]
         }
@@ -52,7 +59,7 @@
         }
       },
       "environment": {
-        "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+        "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
         "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
         "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
         "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -137,6 +144,18 @@
               "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-distributor"
             }
           },
+          "WsConnectLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-wsConnect"
+            }
+          },
+          "NotifierLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-notifier"
+            }
+          },
           "NdviDatesLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
@@ -213,6 +232,12 @@
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
               "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-fieldsInfo"
+            }
+          },
+          "JobGetLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-jobGet"
             }
           },
           "GeocodeLogGroup": {
@@ -317,6 +342,20 @@
                       },
                       {
                         "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][1]"
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "execute-api:ManageConnections"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:execute-api:*:*:*/@connections/*"
+                          }
+                        ]
                       }
                     ]
                   }
@@ -345,7 +384,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/distributor/handler.handler",
               "Runtime": "nodejs20.x",
@@ -354,7 +393,7 @@
               "Timeout": 10,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
@@ -374,6 +413,73 @@
               "DistributorLogGroup"
             ]
           },
+          "WsConnectLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
+              },
+              "Handler": "dist/functions/websocket/handler.connect",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ndvi-pipeline-dev-wsConnect",
+              "MemorySize": 256,
+              "Timeout": 10,
+              "Environment": {
+                "Variables": {
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
+                  "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+                  "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+                  "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "WsConnectLogGroup"
+            ]
+          },
+          "NotifierLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
+              },
+              "Handler": "dist/functions/notifier/handler.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ndvi-pipeline-dev-notifier",
+              "MemorySize": 256,
+              "Timeout": 15,
+              "Environment": {
+                "Variables": {
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
+                  "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+                  "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+                  "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+                  "WS_ENDPOINT": "https://sqw05i0dc5.execute-api.eu-north-1.amazonaws.com/dev"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "NotifierLogGroup"
+            ]
+          },
           "NdviDatesLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -381,7 +487,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/ndviDates/handler.handler",
               "Runtime": "nodejs20.x",
@@ -390,7 +496,7 @@
               "Timeout": 120,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
@@ -416,7 +522,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/processor/handler.handler",
               "Runtime": "nodejs20.x",
@@ -425,7 +531,7 @@
               "Timeout": 60,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
@@ -451,7 +557,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/auth/handler.register",
               "Runtime": "nodejs20.x",
@@ -460,7 +566,7 @@
               "Timeout": 10,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -484,7 +590,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/auth/handler.login",
               "Runtime": "nodejs20.x",
@@ -493,7 +599,7 @@
               "Timeout": 10,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -517,7 +623,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.list",
               "Runtime": "nodejs20.x",
@@ -526,7 +632,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -550,7 +656,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.remove",
               "Runtime": "nodejs20.x",
@@ -559,7 +665,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -583,7 +689,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.cropTypes",
               "Runtime": "nodejs20.x",
@@ -592,7 +698,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -616,7 +722,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.byLocation",
               "Runtime": "nodejs20.x",
@@ -625,7 +731,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -649,7 +755,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.byBbox",
               "Runtime": "nodejs20.x",
@@ -658,7 +764,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -682,7 +788,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.cropParcels",
               "Runtime": "nodejs20.x",
@@ -691,7 +797,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -715,7 +821,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.cropParcelsGeom",
               "Runtime": "nodejs20.x",
@@ -724,7 +830,7 @@
               "Timeout": 29,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -748,7 +854,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/fields/handler.info",
               "Runtime": "nodejs20.x",
@@ -757,7 +863,7 @@
               "Timeout": 29,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -774,6 +880,39 @@
               "FieldsInfoLogGroup"
             ]
           },
+          "JobGetLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
+              },
+              "Handler": "dist/functions/jobs/handler.get",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ndvi-pipeline-dev-jobGet",
+              "MemorySize": 256,
+              "Timeout": 10,
+              "Environment": {
+                "Variables": {
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
+                  "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+                  "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+                  "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "JobGetLogGroup"
+            ]
+          },
           "GeocodeLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -781,7 +920,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/geocode/handler.search",
               "Runtime": "nodejs20.x",
@@ -790,7 +929,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -814,7 +953,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/growingSeason/handler.get",
               "Runtime": "nodejs20.x",
@@ -823,7 +962,7 @@
               "Timeout": 10,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -847,7 +986,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/validate/handler.validate",
               "Runtime": "nodejs20.x",
@@ -856,7 +995,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -880,7 +1019,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/ndvi/handler.dates",
               "Runtime": "nodejs20.x",
@@ -889,7 +1028,7 @@
               "Timeout": 120,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
@@ -915,7 +1054,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/ndvi/handler.getImage",
               "Runtime": "nodejs20.x",
@@ -924,7 +1063,7 @@
               "Timeout": 29,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -948,7 +1087,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/ndvi/handler.getImages",
               "Runtime": "nodejs20.x",
@@ -957,7 +1096,7 @@
               "Timeout": 29,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -981,7 +1120,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z/ndvi-pipeline.zip"
+                "S3Key": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z/ndvi-pipeline.zip"
               },
               "Handler": "dist/functions/weather/handler.getWeatherAll",
               "Runtime": "nodejs20.x",
@@ -990,7 +1129,7 @@
               "Timeout": 15,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -1007,204 +1146,234 @@
               "WeatherAllLogGroup"
             ]
           },
-          "DistributorLambdaVersionmoULpVCJirM2vjp4NRHPbkQ9BwbRXcpRKqXduVmgGYE": {
+          "DistributorLambdaVersion4tnf0w5hFouYaWCX0cNEmWqBWb4vxOCy0t4dWuwcZE": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DistributorLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "NdviDatesLambdaVersionBVxB6kZtfiWHVfYFDTwpC4p5lucC8mGMeKbWl5KmM": {
+          "WsConnectLambdaVersionnFHCQnEVckr0fzCv0IXI9UeZbN96vvLUahPizzIXo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "WsConnectLambdaFunction"
+              },
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
+            }
+          },
+          "NotifierLambdaVersionL76tgCHmb7mDRq16odUhGfNsXxFpLJfnZJ7mr3g2y0": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "NotifierLambdaFunction"
+              },
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
+            }
+          },
+          "NdviDatesLambdaVersione12SiUFSIVIe8Trjst2ZFyFe26NY0AslcumpwcL1Gyg": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "NdviDatesLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "ImageProcessorLambdaVersionKJL1oxskTXRKcxc4jrOWqioENWXIqazyKIsFHjyNE": {
+          "ImageProcessorLambdaVersiongmCBY9BoK7OhqHOd3iM1HHMcGOQtRHaIsVQoOoSbA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ImageProcessorLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "AuthRegisterLambdaVersionNBBiUgiF63q9OEaZYdgAnnrWnCb8qe0ZumdaHhzjUCU": {
+          "AuthRegisterLambdaVersionrit8kx94ngmdepCT55U8zTAisBByYJ40XjD6qLedI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AuthRegisterLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "AuthLoginLambdaVersionldebI9D5m0xKcG4Ll5acMsrv3tUimUUXHrfVUYxk8k": {
+          "AuthLoginLambdaVersion9wtRNzcwx5ByPC4ZmvsuiqIwH5LJgx6oyHGtHq0E35Y": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AuthLoginLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsListLambdaVersionj6exEAOJishgknFVesxSsdDed6ueO2bHj2xEAPaRI4": {
+          "FieldsListLambdaVersionv4tWVtgFeEtUUNj322MsaCS5LOgl340rjnv02Je9UY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsListLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsDeleteLambdaVersionYNvIACQBRaVRi1UDnILua4f8VAGynknoVdrSDMAzZb0": {
+          "FieldsDeleteLambdaVersionPMDRjYbfUBJtZfS3oIDJhyVwhXuNEuFZlsYPcbIgA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsDeleteLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsCropTypesLambdaVersionxlijQMc3QqpBR0vFgh697kJWSh6K8NdT6Tat9GQKOM": {
+          "FieldsCropTypesLambdaVersionPZN0MOk8swX6zbqrVlmBcs6dmRZGBaQKvpGW9aVGk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsCropTypesLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsByLocationLambdaVersionFJ39Uvolvy1i6dOXBY2EJmnKKMg0In5WX9YKLN6XY": {
+          "FieldsByLocationLambdaVersionEGN3BPg1pfEeCQUZziv6pGwEvS6Dox9bIUOZI5cNjU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsByLocationLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsByBboxLambdaVersion3IlbD6layzQYN5yEBbSelbca75fWiNUTfNCzSEvyJ4": {
+          "FieldsByBboxLambdaVersionb7AYZkA9GNDYV0ucQDUMGeSGaNFqbBtLz0OXouqA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsByBboxLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsCropParcelsLambdaVersionvoWkvz3tRYwVur3SLO8O6jyXnvRieujQy5rkzOOUYh8": {
+          "FieldsCropParcelsLambdaVersionFDxghavEOiLIueqbqTLMI5dFcJQMnNMNAF00K2gVfs": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsCropParcelsLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsCropParcelsGeomLambdaVersion3H90i9U4pDrKudISTl1M7P6PmCMuO7vOsYF7uPZDknI": {
+          "FieldsCropParcelsGeomLambdaVersionuBmibrg59IPNWJwR6OXVaLjeC19jnDqpV2zA7wOFQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsCropParcelsGeomLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "FieldsInfoLambdaVersionsWFzEsWawEi4whcvOvzvwlstpI1z7yi0ku2oIDJW50": {
+          "FieldsInfoLambdaVersionZcJywXZ9x1hbIZx7sUgL5VljqoiwkCuBvtIGFZAmgvM": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "FieldsInfoLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "GeocodeLambdaVersionhr2ijDWDKnHuPXgc72SbJrDiRzfhYUsELZls5nGno": {
+          "JobGetLambdaVersionbC9tWSOCNIla0pdg5zrH9TRSCsrUXRqICg2yxSyKKo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "JobGetLambdaFunction"
+              },
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
+            }
+          },
+          "GeocodeLambdaVersionJNfdyN7jdQJcO4TFecTWRbOp35Kx5gh8p8Noj69XLI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GeocodeLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "GrowingSeasonLambdaVersion4eiVJ1arXarY7LfBIYmzLElBRtliGvFkPXwhS07lOKo": {
+          "GrowingSeasonLambdaVersionAPBCzP3JDaGNKM1yvUAPrAXWYjstaX1kvdk500F1bc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GrowingSeasonLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "ValidateGeoJsonLambdaVersionueFFBQo14fCGtlciwXanEiudps2azrww7MaEEZto": {
+          "ValidateGeoJsonLambdaVersionp0MKDe5JeE3BO0AEgx9Noi49rOLFsuNPxw0stu33I": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ValidateGeoJsonLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "NdviDatesApiLambdaVersionhSxX7JG9i4u32X6yeidOBO8I0mLtTPsEPBU1NpBWts": {
+          "NdviDatesApiLambdaVersionYiXwybcU4MeTn1OeoqWvm4OQbj0YEN07Xen9hzngu8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "NdviDatesApiLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "NdviImageLambdaVersionB0U3WzJnWYWtehd2P6ju6l1pmWmiIxWoRKVAb1RAYU": {
+          "NdviImageLambdaVersionQ4m6x2g7wkGR5hgwpj1cpMmf99rnpKzcRJ0M9XnvjRs": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "NdviImageLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "NdviImagesLambdaVersionHoWW39j6WNkTA3mK8u4x6B0Z2hjfGcMrsY2tc1trQ": {
+          "NdviImagesLambdaVersionhAW5EX43SCFLVB3EJRFKc0GsgmJBb1jNHtqjwHir2ig": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "NdviImagesLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
-          "WeatherAllLambdaVersion61SuekS3ECROOa4KzoQ5c4IIAh1qmmsbcchydQ2C8": {
+          "WeatherAllLambdaVersionQVTxGZUojFgEwl54RscyckKDSEdotZw9joQItD7Mw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "WeatherAllLambdaFunction"
               },
-              "CodeSha256": "SqAgq5IHrphPub4huZImt3wx9epT4MQsA8D7P9uFzqA="
+              "CodeSha256": "W4hiHqwgUkk5F7emO35AiM0WdedC1oL6Ry1B7FgSGnM="
             }
           },
           "ClassifierLambdaFunction": {
@@ -1219,7 +1388,7 @@
               "Timeout": 120,
               "Environment": {
                 "Variables": {
-                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI5?appName=NDVI",
+                  "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI1?appName=NDVI",
                   "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
                   "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
                   "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
@@ -1236,7 +1405,7 @@
               "ClassifierLogGroup"
             ]
           },
-          "ClassifierLambdaVersiondMBBKrSCWgGoDmCGhfkwgMZqarVT06PUcVn5oYnU": {
+          "ClassifierLambdaVersionPz8ERus43Vm6vcBOqH9QwfgostjHhb1Bg3iYUQvqU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
@@ -1331,6 +1500,25 @@
                                 }
                               }
                             ]
+                          },
+                          {
+                            "Fn::GetAtt": [
+                              "NotifierLambdaFunction",
+                              "Arn"
+                            ]
+                          },
+                          {
+                            "Fn::Sub": [
+                              "${functionArn}:*",
+                              {
+                                "functionArn": {
+                                  "Fn::GetAtt": [
+                                    "NotifierLambdaFunction",
+                                    "Arn"
+                                  ]
+                                }
+                              }
+                            ]
                           }
                         ]
                       }
@@ -1345,7 +1533,7 @@
             "Properties": {
               "DefinitionString": {
                 "Fn::Sub": [
-                  "{\n  \"StartAt\": \"distributor\",\n  \"States\": {\n    \"distributor\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${55d26fd665f88c35bf0401c8ae34b292}\",\n      \"Next\": \"forEachField\"\n    },\n    \"forEachField\": {\n      \"Type\": \"Map\",\n      \"ItemsPath\": \"$.fields\",\n      \"MaxConcurrency\": 2,\n      \"Iterator\": {\n        \"StartAt\": \"ndviDates\",\n        \"States\": {\n          \"ndviDates\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${397f01e77f6d3b69defba76229549779}\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              },\n              {\n                \"ErrorEquals\": [\n                  \"States.TaskFailed\"\n                ],\n                \"IntervalSeconds\": 10,\n                \"MaxAttempts\": 2,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\n                  \"States.ALL\"\n                ],\n                \"Next\": \"fieldDone\",\n                \"ResultPath\": null\n              }\n            ],\n            \"Next\": \"forEachDate\"\n          },\n          \"forEachDate\": {\n            \"Type\": \"Map\",\n            \"ItemsPath\": \"$.items\",\n            \"MaxConcurrency\": 5,\n            \"ItemSelector\": {\n              \"item.$\": \"$$.Map.Item.Value\",\n              \"geometry.$\": \"$.geometry\"\n            },\n            \"Iterator\": {\n              \"StartAt\": \"processor\",\n              \"States\": {\n                \"processor\": {\n                  \"Type\": \"Task\",\n                  \"Resource\": \"${334c6b46690b8522dddb3af2dc5d6151}\",\n                  \"Retry\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"Lambda.ServiceException\",\n                        \"Lambda.AWSLambdaException\",\n                        \"Lambda.SdkClientException\",\n                        \"Lambda.TooManyRequestsException\"\n                      ],\n                      \"IntervalSeconds\": 2,\n                      \"MaxAttempts\": 3,\n                      \"BackoffRate\": 2\n                    },\n                    {\n                      \"ErrorEquals\": [\n                        \"States.TaskFailed\"\n                      ],\n                      \"IntervalSeconds\": 5,\n                      \"MaxAttempts\": 2,\n                      \"BackoffRate\": 2\n                    }\n                  ],\n                  \"Catch\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"States.ALL\"\n                      ],\n                      \"Next\": \"dateFailed\",\n                      \"ResultPath\": null\n                    }\n                  ],\n                  \"End\": true\n                },\n                \"dateFailed\": {\n                  \"Type\": \"Pass\",\n                  \"End\": true\n                }\n              }\n            },\n            \"Next\": \"fieldDone\",\n            \"ResultPath\": null\n          },\n          \"fieldDone\": {\n            \"Type\": \"Pass\",\n            \"Parameters\": {\n              \"field_id.$\": \"$.field_id\",\n              \"done\": true\n            },\n            \"End\": true\n          }\n        }\n      },\n      \"End\": true\n    }\n  }\n}",
+                  "{\n  \"StartAt\": \"distributor\",\n  \"States\": {\n    \"distributor\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${55d26fd665f88c35bf0401c8ae34b292}\",\n      \"Next\": \"forEachField\"\n    },\n    \"forEachField\": {\n      \"Type\": \"Map\",\n      \"ItemsPath\": \"$.fields\",\n      \"MaxConcurrency\": 2,\n      \"Iterator\": {\n        \"StartAt\": \"ndviDates\",\n        \"States\": {\n          \"ndviDates\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${397f01e77f6d3b69defba76229549779}\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              },\n              {\n                \"ErrorEquals\": [\n                  \"States.TaskFailed\"\n                ],\n                \"IntervalSeconds\": 10,\n                \"MaxAttempts\": 2,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\n                  \"States.ALL\"\n                ],\n                \"Next\": \"fieldFailed\",\n                \"ResultPath\": null\n              }\n            ],\n            \"Next\": \"forEachDate\"\n          },\n          \"forEachDate\": {\n            \"Type\": \"Map\",\n            \"ItemsPath\": \"$.items\",\n            \"MaxConcurrency\": 5,\n            \"ItemSelector\": {\n              \"item.$\": \"$$.Map.Item.Value\",\n              \"geometry.$\": \"$.geometry\"\n            },\n            \"Iterator\": {\n              \"StartAt\": \"processor\",\n              \"States\": {\n                \"processor\": {\n                  \"Type\": \"Task\",\n                  \"Resource\": \"${334c6b46690b8522dddb3af2dc5d6151}\",\n                  \"Retry\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"Lambda.ServiceException\",\n                        \"Lambda.AWSLambdaException\",\n                        \"Lambda.SdkClientException\",\n                        \"Lambda.TooManyRequestsException\"\n                      ],\n                      \"IntervalSeconds\": 2,\n                      \"MaxAttempts\": 3,\n                      \"BackoffRate\": 2\n                    },\n                    {\n                      \"ErrorEquals\": [\n                        \"States.TaskFailed\"\n                      ],\n                      \"IntervalSeconds\": 5,\n                      \"MaxAttempts\": 2,\n                      \"BackoffRate\": 2\n                    }\n                  ],\n                  \"Catch\": [\n                    {\n                      \"ErrorEquals\": [\n                        \"States.ALL\"\n                      ],\n                      \"Next\": \"dateFailed\",\n                      \"ResultPath\": null\n                    }\n                  ],\n                  \"End\": true\n                },\n                \"dateFailed\": {\n                  \"Type\": \"Pass\",\n                  \"End\": true\n                }\n              }\n            },\n            \"Next\": \"fieldDone\",\n            \"ResultPath\": null\n          },\n          \"fieldDone\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${9722527e987dd329931c40fe76ff85b2}\",\n            \"Parameters\": {\n              \"jobId.$\": \"$.jobId\",\n              \"aoiId.$\": \"$.aoiId\",\n              \"field_id.$\": \"$.field_id\",\n              \"status\": \"done\"\n            },\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"End\": true\n          },\n          \"fieldFailed\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${9722527e987dd329931c40fe76ff85b2}\",\n            \"Parameters\": {\n              \"jobId.$\": \"$.jobId\",\n              \"aoiId.$\": \"$.aoiId\",\n              \"field_id.$\": \"$.field_id\",\n              \"status\": \"failed\"\n            },\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\n                  \"Lambda.ServiceException\",\n                  \"Lambda.AWSLambdaException\",\n                  \"Lambda.SdkClientException\",\n                  \"Lambda.TooManyRequestsException\"\n                ],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2\n              }\n            ],\n            \"End\": true\n          }\n        }\n      },\n      \"End\": true\n    }\n  }\n}",
                   {
                     "55d26fd665f88c35bf0401c8ae34b292": {
                       "Fn::GetAtt": [
@@ -1364,6 +1552,12 @@
                         "ImageProcessorLambdaFunction",
                         "Arn"
                       ]
+                    },
+                    "9722527e987dd329931c40fe76ff85b2": {
+                      "Fn::GetAtt": [
+                        "NotifierLambdaFunction",
+                        "Arn"
+                      ]
                     }
                   }
                 ]
@@ -1379,6 +1573,110 @@
             "DependsOn": [
               "NdviWorkflowRole"
             ]
+          },
+          "WebsocketsApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-ndvi-pipeline-websockets",
+              "RouteSelectionExpression": "$request.body.action",
+              "Description": "Serverless Websockets",
+              "ProtocolType": "WEBSOCKET"
+            }
+          },
+          "WsConnectWebsocketsIntegration": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "WebsocketsApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "WsConnectLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            }
+          },
+          "WsConnectLambdaPermissionWebsockets": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": [
+              "WebsocketsApi",
+              "WsConnectLambdaFunction"
+            ],
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "WsConnectLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com"
+            }
+          },
+          "SconnectWebsocketsRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "WebsocketsApi"
+              },
+              "RouteKey": "$connect",
+              "AuthorizationType": "NONE",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "WsConnectWebsocketsIntegration"
+                    }
+                  ]
+                ]
+              }
+            }
+          },
+          "WebsocketsDeploymentStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "WebsocketsApi"
+              },
+              "StageName": "dev",
+              "Description": "Serverless Websockets",
+              "DeploymentId": {
+                "Ref": "WebsocketsDeploymentEAQnCSJbhPZlNP7o4kZCSUXDoGDtzx829QpqyKajY"
+              }
+            }
+          },
+          "WebsocketsDeploymentEAQnCSJbhPZlNP7o4kZCSUXDoGDtzx829QpqyKajY": {
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DependsOn": [
+              "SconnectWebsocketsRoute"
+            ],
+            "Properties": {
+              "ApiId": {
+                "Ref": "WebsocketsApi"
+              },
+              "Description": "Serverless Websockets"
+            }
           },
           "HttpApi": {
             "Type": "AWS::ApiGatewayV2::Api",
@@ -2209,6 +2507,78 @@
             },
             "DependsOn": "HttpApiIntegrationFieldsInfo"
           },
+          "JobGetLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "JobGetLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationJobGet": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"JobGetLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetApiJobsJobidVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /api/jobs/{jobId}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationJobGet"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationJobGet"
+          },
           "GeocodeLambdaPermissionHttpApi": {
             "Type": "AWS::Lambda::Permission",
             "Properties": {
@@ -2726,16 +3096,34 @@
           "DistributorLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DistributorLambdaVersionmoULpVCJirM2vjp4NRHPbkQ9BwbRXcpRKqXduVmgGYE"
+              "Ref": "DistributorLambdaVersion4tnf0w5hFouYaWCX0cNEmWqBWb4vxOCy0t4dWuwcZE"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-DistributorLambdaFunctionQualifiedArn"
             }
           },
+          "WsConnectLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "WsConnectLambdaVersionnFHCQnEVckr0fzCv0IXI9UeZbN96vvLUahPizzIXo"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-WsConnectLambdaFunctionQualifiedArn"
+            }
+          },
+          "NotifierLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "NotifierLambdaVersionL76tgCHmb7mDRq16odUhGfNsXxFpLJfnZJ7mr3g2y0"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-NotifierLambdaFunctionQualifiedArn"
+            }
+          },
           "NdviDatesLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "NdviDatesLambdaVersionBVxB6kZtfiWHVfYFDTwpC4p5lucC8mGMeKbWl5KmM"
+              "Ref": "NdviDatesLambdaVersione12SiUFSIVIe8Trjst2ZFyFe26NY0AslcumpwcL1Gyg"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-NdviDatesLambdaFunctionQualifiedArn"
@@ -2744,7 +3132,7 @@
           "ImageProcessorLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ImageProcessorLambdaVersionKJL1oxskTXRKcxc4jrOWqioENWXIqazyKIsFHjyNE"
+              "Ref": "ImageProcessorLambdaVersiongmCBY9BoK7OhqHOd3iM1HHMcGOQtRHaIsVQoOoSbA"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-ImageProcessorLambdaFunctionQualifiedArn"
@@ -2753,7 +3141,7 @@
           "AuthRegisterLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AuthRegisterLambdaVersionNBBiUgiF63q9OEaZYdgAnnrWnCb8qe0ZumdaHhzjUCU"
+              "Ref": "AuthRegisterLambdaVersionrit8kx94ngmdepCT55U8zTAisBByYJ40XjD6qLedI"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-AuthRegisterLambdaFunctionQualifiedArn"
@@ -2762,7 +3150,7 @@
           "AuthLoginLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AuthLoginLambdaVersionldebI9D5m0xKcG4Ll5acMsrv3tUimUUXHrfVUYxk8k"
+              "Ref": "AuthLoginLambdaVersion9wtRNzcwx5ByPC4ZmvsuiqIwH5LJgx6oyHGtHq0E35Y"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-AuthLoginLambdaFunctionQualifiedArn"
@@ -2771,7 +3159,7 @@
           "FieldsListLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsListLambdaVersionj6exEAOJishgknFVesxSsdDed6ueO2bHj2xEAPaRI4"
+              "Ref": "FieldsListLambdaVersionv4tWVtgFeEtUUNj322MsaCS5LOgl340rjnv02Je9UY"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsListLambdaFunctionQualifiedArn"
@@ -2780,7 +3168,7 @@
           "FieldsDeleteLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsDeleteLambdaVersionYNvIACQBRaVRi1UDnILua4f8VAGynknoVdrSDMAzZb0"
+              "Ref": "FieldsDeleteLambdaVersionPMDRjYbfUBJtZfS3oIDJhyVwhXuNEuFZlsYPcbIgA"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsDeleteLambdaFunctionQualifiedArn"
@@ -2789,7 +3177,7 @@
           "FieldsCropTypesLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsCropTypesLambdaVersionxlijQMc3QqpBR0vFgh697kJWSh6K8NdT6Tat9GQKOM"
+              "Ref": "FieldsCropTypesLambdaVersionPZN0MOk8swX6zbqrVlmBcs6dmRZGBaQKvpGW9aVGk"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsCropTypesLambdaFunctionQualifiedArn"
@@ -2798,7 +3186,7 @@
           "FieldsByLocationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsByLocationLambdaVersionFJ39Uvolvy1i6dOXBY2EJmnKKMg0In5WX9YKLN6XY"
+              "Ref": "FieldsByLocationLambdaVersionEGN3BPg1pfEeCQUZziv6pGwEvS6Dox9bIUOZI5cNjU"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsByLocationLambdaFunctionQualifiedArn"
@@ -2807,7 +3195,7 @@
           "FieldsByBboxLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsByBboxLambdaVersion3IlbD6layzQYN5yEBbSelbca75fWiNUTfNCzSEvyJ4"
+              "Ref": "FieldsByBboxLambdaVersionb7AYZkA9GNDYV0ucQDUMGeSGaNFqbBtLz0OXouqA"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsByBboxLambdaFunctionQualifiedArn"
@@ -2816,7 +3204,7 @@
           "FieldsCropParcelsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsCropParcelsLambdaVersionvoWkvz3tRYwVur3SLO8O6jyXnvRieujQy5rkzOOUYh8"
+              "Ref": "FieldsCropParcelsLambdaVersionFDxghavEOiLIueqbqTLMI5dFcJQMnNMNAF00K2gVfs"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsLambdaFunctionQualifiedArn"
@@ -2825,7 +3213,7 @@
           "FieldsCropParcelsGeomLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsCropParcelsGeomLambdaVersion3H90i9U4pDrKudISTl1M7P6PmCMuO7vOsYF7uPZDknI"
+              "Ref": "FieldsCropParcelsGeomLambdaVersionuBmibrg59IPNWJwR6OXVaLjeC19jnDqpV2zA7wOFQ"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsGeomLambdaFunctionQualifiedArn"
@@ -2834,16 +3222,25 @@
           "FieldsInfoLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "FieldsInfoLambdaVersionsWFzEsWawEi4whcvOvzvwlstpI1z7yi0ku2oIDJW50"
+              "Ref": "FieldsInfoLambdaVersionZcJywXZ9x1hbIZx7sUgL5VljqoiwkCuBvtIGFZAmgvM"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-FieldsInfoLambdaFunctionQualifiedArn"
             }
           },
+          "JobGetLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "JobGetLambdaVersionbC9tWSOCNIla0pdg5zrH9TRSCsrUXRqICg2yxSyKKo"
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-JobGetLambdaFunctionQualifiedArn"
+            }
+          },
           "GeocodeLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GeocodeLambdaVersionhr2ijDWDKnHuPXgc72SbJrDiRzfhYUsELZls5nGno"
+              "Ref": "GeocodeLambdaVersionJNfdyN7jdQJcO4TFecTWRbOp35Kx5gh8p8Noj69XLI"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-GeocodeLambdaFunctionQualifiedArn"
@@ -2852,7 +3249,7 @@
           "GrowingSeasonLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GrowingSeasonLambdaVersion4eiVJ1arXarY7LfBIYmzLElBRtliGvFkPXwhS07lOKo"
+              "Ref": "GrowingSeasonLambdaVersionAPBCzP3JDaGNKM1yvUAPrAXWYjstaX1kvdk500F1bc"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-GrowingSeasonLambdaFunctionQualifiedArn"
@@ -2861,7 +3258,7 @@
           "ValidateGeoJsonLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ValidateGeoJsonLambdaVersionueFFBQo14fCGtlciwXanEiudps2azrww7MaEEZto"
+              "Ref": "ValidateGeoJsonLambdaVersionp0MKDe5JeE3BO0AEgx9Noi49rOLFsuNPxw0stu33I"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-ValidateGeoJsonLambdaFunctionQualifiedArn"
@@ -2870,7 +3267,7 @@
           "NdviDatesApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "NdviDatesApiLambdaVersionhSxX7JG9i4u32X6yeidOBO8I0mLtTPsEPBU1NpBWts"
+              "Ref": "NdviDatesApiLambdaVersionYiXwybcU4MeTn1OeoqWvm4OQbj0YEN07Xen9hzngu8"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-NdviDatesApiLambdaFunctionQualifiedArn"
@@ -2879,7 +3276,7 @@
           "NdviImageLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "NdviImageLambdaVersionB0U3WzJnWYWtehd2P6ju6l1pmWmiIxWoRKVAb1RAYU"
+              "Ref": "NdviImageLambdaVersionQ4m6x2g7wkGR5hgwpj1cpMmf99rnpKzcRJ0M9XnvjRs"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-NdviImageLambdaFunctionQualifiedArn"
@@ -2888,7 +3285,7 @@
           "NdviImagesLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "NdviImagesLambdaVersionHoWW39j6WNkTA3mK8u4x6B0Z2hjfGcMrsY2tc1trQ"
+              "Ref": "NdviImagesLambdaVersionhAW5EX43SCFLVB3EJRFKc0GsgmJBb1jNHtqjwHir2ig"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-NdviImagesLambdaFunctionQualifiedArn"
@@ -2897,7 +3294,7 @@
           "WeatherAllLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "WeatherAllLambdaVersion61SuekS3ECROOa4KzoQ5c4IIAh1qmmsbcchydQ2C8"
+              "Ref": "WeatherAllLambdaVersionQVTxGZUojFgEwl54RscyckKDSEdotZw9joQItD7Mw"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-WeatherAllLambdaFunctionQualifiedArn"
@@ -2906,7 +3303,7 @@
           "ClassifierLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ClassifierLambdaVersiondMBBKrSCWgGoDmCGhfkwgMZqarVT06PUcVn5oYnU"
+              "Ref": "ClassifierLambdaVersionPz8ERus43Vm6vcBOqH9QwfgostjHhb1Bg3iYUQvqU"
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-ClassifierLambdaFunctionQualifiedArn"
@@ -2919,6 +3316,32 @@
             },
             "Export": {
               "Name": "sls-ndvi-pipeline-dev-NdviWorkflowArn"
+            }
+          },
+          "ServiceEndpointWebsocket": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "wss://",
+                  {
+                    "Ref": "WebsocketsApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-ndvi-pipeline-dev-ServiceEndpointWebsocket"
             }
           },
           "HttpApiId": {
@@ -3071,7 +3494,40 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "DistributorLambdaVersionmoULpVCJirM2vjp4NRHPbkQ9BwbRXcpRKqXduVmgGYE"
+        "versionLogicalId": "DistributorLambdaVersion4tnf0w5hFouYaWCX0cNEmWqBWb4vxOCy0t4dWuwcZE"
+      },
+      "wsConnect": {
+        "handler": "dist/functions/websocket/handler.connect",
+        "runtime": "nodejs20.x",
+        "memorySize": 256,
+        "timeout": 10,
+        "events": [
+          {
+            "websocket": {
+              "route": "$connect"
+            }
+          }
+        ],
+        "name": "ndvi-pipeline-dev-wsConnect",
+        "package": {},
+        "memory": 256,
+        "vpc": {},
+        "versionLogicalId": "WsConnectLambdaVersionnFHCQnEVckr0fzCv0IXI9UeZbN96vvLUahPizzIXo"
+      },
+      "notifier": {
+        "handler": "dist/functions/notifier/handler.handler",
+        "runtime": "nodejs20.x",
+        "memorySize": 256,
+        "timeout": 15,
+        "environment": {
+          "WS_ENDPOINT": "https://sqw05i0dc5.execute-api.eu-north-1.amazonaws.com/dev"
+        },
+        "events": [],
+        "name": "ndvi-pipeline-dev-notifier",
+        "package": {},
+        "memory": 256,
+        "vpc": {},
+        "versionLogicalId": "NotifierLambdaVersionL76tgCHmb7mDRq16odUhGfNsXxFpLJfnZJ7mr3g2y0"
       },
       "ndviDates": {
         "handler": "dist/functions/ndviDates/handler.handler",
@@ -3087,7 +3543,7 @@
         "package": {},
         "memory": 512,
         "vpc": {},
-        "versionLogicalId": "NdviDatesLambdaVersionBVxB6kZtfiWHVfYFDTwpC4p5lucC8mGMeKbWl5KmM"
+        "versionLogicalId": "NdviDatesLambdaVersione12SiUFSIVIe8Trjst2ZFyFe26NY0AslcumpwcL1Gyg"
       },
       "imageProcessor": {
         "handler": "dist/functions/processor/handler.handler",
@@ -3103,7 +3559,7 @@
         "package": {},
         "memory": 1024,
         "vpc": {},
-        "versionLogicalId": "ImageProcessorLambdaVersionKJL1oxskTXRKcxc4jrOWqioENWXIqazyKIsFHjyNE"
+        "versionLogicalId": "ImageProcessorLambdaVersiongmCBY9BoK7OhqHOd3iM1HHMcGOQtRHaIsVQoOoSbA"
       },
       "classifier": {
         "image": {
@@ -3116,7 +3572,7 @@
         "package": {},
         "memory": 3008,
         "vpc": {},
-        "versionLogicalId": "ClassifierLambdaVersiondMBBKrSCWgGoDmCGhfkwgMZqarVT06PUcVn5oYnU"
+        "versionLogicalId": "ClassifierLambdaVersionPz8ERus43Vm6vcBOqH9QwfgostjHhb1Bg3iYUQvqU"
       },
       "authRegister": {
         "handler": "dist/functions/auth/handler.register",
@@ -3137,7 +3593,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "AuthRegisterLambdaVersionNBBiUgiF63q9OEaZYdgAnnrWnCb8qe0ZumdaHhzjUCU"
+        "versionLogicalId": "AuthRegisterLambdaVersionrit8kx94ngmdepCT55U8zTAisBByYJ40XjD6qLedI"
       },
       "authLogin": {
         "handler": "dist/functions/auth/handler.login",
@@ -3158,7 +3614,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "AuthLoginLambdaVersionldebI9D5m0xKcG4Ll5acMsrv3tUimUUXHrfVUYxk8k"
+        "versionLogicalId": "AuthLoginLambdaVersion9wtRNzcwx5ByPC4ZmvsuiqIwH5LJgx6oyHGtHq0E35Y"
       },
       "fieldsList": {
         "handler": "dist/functions/fields/handler.list",
@@ -3179,7 +3635,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsListLambdaVersionj6exEAOJishgknFVesxSsdDed6ueO2bHj2xEAPaRI4"
+        "versionLogicalId": "FieldsListLambdaVersionv4tWVtgFeEtUUNj322MsaCS5LOgl340rjnv02Je9UY"
       },
       "fieldsDelete": {
         "handler": "dist/functions/fields/handler.remove",
@@ -3200,7 +3656,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsDeleteLambdaVersionYNvIACQBRaVRi1UDnILua4f8VAGynknoVdrSDMAzZb0"
+        "versionLogicalId": "FieldsDeleteLambdaVersionPMDRjYbfUBJtZfS3oIDJhyVwhXuNEuFZlsYPcbIgA"
       },
       "fieldsCropTypes": {
         "handler": "dist/functions/fields/handler.cropTypes",
@@ -3221,7 +3677,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsCropTypesLambdaVersionxlijQMc3QqpBR0vFgh697kJWSh6K8NdT6Tat9GQKOM"
+        "versionLogicalId": "FieldsCropTypesLambdaVersionPZN0MOk8swX6zbqrVlmBcs6dmRZGBaQKvpGW9aVGk"
       },
       "fieldsByLocation": {
         "handler": "dist/functions/fields/handler.byLocation",
@@ -3242,7 +3698,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsByLocationLambdaVersionFJ39Uvolvy1i6dOXBY2EJmnKKMg0In5WX9YKLN6XY"
+        "versionLogicalId": "FieldsByLocationLambdaVersionEGN3BPg1pfEeCQUZziv6pGwEvS6Dox9bIUOZI5cNjU"
       },
       "fieldsByBbox": {
         "handler": "dist/functions/fields/handler.byBbox",
@@ -3263,7 +3719,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsByBboxLambdaVersion3IlbD6layzQYN5yEBbSelbca75fWiNUTfNCzSEvyJ4"
+        "versionLogicalId": "FieldsByBboxLambdaVersionb7AYZkA9GNDYV0ucQDUMGeSGaNFqbBtLz0OXouqA"
       },
       "fieldsCropParcels": {
         "handler": "dist/functions/fields/handler.cropParcels",
@@ -3284,7 +3740,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsCropParcelsLambdaVersionvoWkvz3tRYwVur3SLO8O6jyXnvRieujQy5rkzOOUYh8"
+        "versionLogicalId": "FieldsCropParcelsLambdaVersionFDxghavEOiLIueqbqTLMI5dFcJQMnNMNAF00K2gVfs"
       },
       "fieldsCropParcelsGeom": {
         "handler": "dist/functions/fields/handler.cropParcelsGeom",
@@ -3305,7 +3761,7 @@
         "package": {},
         "memory": 512,
         "vpc": {},
-        "versionLogicalId": "FieldsCropParcelsGeomLambdaVersion3H90i9U4pDrKudISTl1M7P6PmCMuO7vOsYF7uPZDknI"
+        "versionLogicalId": "FieldsCropParcelsGeomLambdaVersionuBmibrg59IPNWJwR6OXVaLjeC19jnDqpV2zA7wOFQ"
       },
       "fieldsInfo": {
         "handler": "dist/functions/fields/handler.info",
@@ -3326,7 +3782,28 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "FieldsInfoLambdaVersionsWFzEsWawEi4whcvOvzvwlstpI1z7yi0ku2oIDJW50"
+        "versionLogicalId": "FieldsInfoLambdaVersionZcJywXZ9x1hbIZx7sUgL5VljqoiwkCuBvtIGFZAmgvM"
+      },
+      "jobGet": {
+        "handler": "dist/functions/jobs/handler.get",
+        "runtime": "nodejs20.x",
+        "memorySize": 256,
+        "timeout": 10,
+        "events": [
+          {
+            "httpApi": {
+              "path": "/api/jobs/{jobId}",
+              "method": "get"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/api/jobs/{jobId}"
+          }
+        ],
+        "name": "ndvi-pipeline-dev-jobGet",
+        "package": {},
+        "memory": 256,
+        "vpc": {},
+        "versionLogicalId": "JobGetLambdaVersionbC9tWSOCNIla0pdg5zrH9TRSCsrUXRqICg2yxSyKKo"
       },
       "geocode": {
         "handler": "dist/functions/geocode/handler.search",
@@ -3347,7 +3824,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "GeocodeLambdaVersionhr2ijDWDKnHuPXgc72SbJrDiRzfhYUsELZls5nGno"
+        "versionLogicalId": "GeocodeLambdaVersionJNfdyN7jdQJcO4TFecTWRbOp35Kx5gh8p8Noj69XLI"
       },
       "growingSeason": {
         "handler": "dist/functions/growingSeason/handler.get",
@@ -3368,7 +3845,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "GrowingSeasonLambdaVersion4eiVJ1arXarY7LfBIYmzLElBRtliGvFkPXwhS07lOKo"
+        "versionLogicalId": "GrowingSeasonLambdaVersionAPBCzP3JDaGNKM1yvUAPrAXWYjstaX1kvdk500F1bc"
       },
       "validateGeoJson": {
         "handler": "dist/functions/validate/handler.validate",
@@ -3389,7 +3866,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "ValidateGeoJsonLambdaVersionueFFBQo14fCGtlciwXanEiudps2azrww7MaEEZto"
+        "versionLogicalId": "ValidateGeoJsonLambdaVersionp0MKDe5JeE3BO0AEgx9Noi49rOLFsuNPxw0stu33I"
       },
       "ndviDatesApi": {
         "handler": "dist/functions/ndvi/handler.dates",
@@ -3414,7 +3891,7 @@
         "package": {},
         "memory": 1024,
         "vpc": {},
-        "versionLogicalId": "NdviDatesApiLambdaVersionhSxX7JG9i4u32X6yeidOBO8I0mLtTPsEPBU1NpBWts"
+        "versionLogicalId": "NdviDatesApiLambdaVersionYiXwybcU4MeTn1OeoqWvm4OQbj0YEN07Xen9hzngu8"
       },
       "ndviImage": {
         "handler": "dist/functions/ndvi/handler.getImage",
@@ -3435,7 +3912,7 @@
         "package": {},
         "memory": 512,
         "vpc": {},
-        "versionLogicalId": "NdviImageLambdaVersionB0U3WzJnWYWtehd2P6ju6l1pmWmiIxWoRKVAb1RAYU"
+        "versionLogicalId": "NdviImageLambdaVersionQ4m6x2g7wkGR5hgwpj1cpMmf99rnpKzcRJ0M9XnvjRs"
       },
       "ndviImages": {
         "handler": "dist/functions/ndvi/handler.getImages",
@@ -3456,7 +3933,7 @@
         "package": {},
         "memory": 512,
         "vpc": {},
-        "versionLogicalId": "NdviImagesLambdaVersionHoWW39j6WNkTA3mK8u4x6B0Z2hjfGcMrsY2tc1trQ"
+        "versionLogicalId": "NdviImagesLambdaVersionhAW5EX43SCFLVB3EJRFKc0GsgmJBb1jNHtqjwHir2ig"
       },
       "weatherAll": {
         "handler": "dist/functions/weather/handler.getWeatherAll",
@@ -3477,7 +3954,7 @@
         "package": {},
         "memory": 256,
         "vpc": {},
-        "versionLogicalId": "WeatherAllLambdaVersion61SuekS3ECROOa4KzoQ5c4IIAh1qmmsbcchydQ2C8"
+        "versionLogicalId": "WeatherAllLambdaVersionQVTxGZUojFgEwl54RscyckKDSEdotZw9joQItD7Mw"
       }
     },
     "configValidationMode": "error",
@@ -3544,7 +4021,7 @@
                             "ErrorEquals": [
                               "States.ALL"
                             ],
-                            "Next": "fieldDone",
+                            "Next": "fieldFailed",
                             "ResultPath": null
                           }
                         ],
@@ -3606,11 +4083,51 @@
                         "ResultPath": null
                       },
                       "fieldDone": {
-                        "Type": "Pass",
+                        "Type": "Task",
+                        "Resource": "${9722527e987dd329931c40fe76ff85b2}",
                         "Parameters": {
+                          "jobId.$": "$.jobId",
+                          "aoiId.$": "$.aoiId",
                           "field_id.$": "$.field_id",
-                          "done": true
+                          "status": "done"
                         },
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.ServiceException",
+                              "Lambda.AWSLambdaException",
+                              "Lambda.SdkClientException",
+                              "Lambda.TooManyRequestsException"
+                            ],
+                            "IntervalSeconds": 2,
+                            "MaxAttempts": 3,
+                            "BackoffRate": 2
+                          }
+                        ],
+                        "End": true
+                      },
+                      "fieldFailed": {
+                        "Type": "Task",
+                        "Resource": "${9722527e987dd329931c40fe76ff85b2}",
+                        "Parameters": {
+                          "jobId.$": "$.jobId",
+                          "aoiId.$": "$.aoiId",
+                          "field_id.$": "$.field_id",
+                          "status": "failed"
+                        },
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.ServiceException",
+                              "Lambda.AWSLambdaException",
+                              "Lambda.SdkClientException",
+                              "Lambda.TooManyRequestsException"
+                            ],
+                            "IntervalSeconds": 2,
+                            "MaxAttempts": 3,
+                            "BackoffRate": 2
+                          }
+                        ],
                         "End": true
                       }
                     }
@@ -3634,7 +4151,7 @@
     "artifact": "D:\\AWS-step-functions\\.serverless\\ndvi-pipeline.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1791868930618-2026-10-13T05:22:10.618Z",
+    "artifactDirectoryName": "serverless/ndvi-pipeline/dev/1792042634634-2026-10-15T05:37:14.634Z",
     "artifact": "ndvi-pipeline.zip"
   }
 }

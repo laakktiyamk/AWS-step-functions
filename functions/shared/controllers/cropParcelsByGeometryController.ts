@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { getByGeometry } from "../services/cropParcelService" ; // sovita polku ja tiedostonimi omaan service-tiedostoosi
+import { ensureParcelConnected } from "../mongo/connections";
+import { getByGeometry } from "../services/cropParcelService";
+
 
 export const cropParcelsByGeometry = async (req: Request, res: Response) => {
   const geometry = req.body?.geometry;
@@ -7,6 +9,7 @@ export const cropParcelsByGeometry = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Polygon or MultiPolygon geometry required" });
   }
   try {
+    await ensureParcelConnected();
     const parcels = await getByGeometry(geometry);
     return res.json(parcels);
   } catch (err) {

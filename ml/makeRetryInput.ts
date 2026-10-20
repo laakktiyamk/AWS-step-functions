@@ -1,6 +1,6 @@
 import * as fs from 'fs'
-import { MlData } from '../shared/mongo/models/MlData'
-import { ensureParcelConnected } from '../shared/mongo/connections'
+import { MlData } from '../functions/shared/mongo/models/MlData'
+import { ensureParcelConnected } from '../functions/shared/mongo/connections'
 
 const HASHES = [
   '50a91c6d33cf1605a2c964746f966a25eb2c53e33c32a2a6303a546d690b26cb',

@@ -156,10 +156,31 @@ export const getSentinelDatesBySeason = async (
   authToken: string,
   concurrency: number = 3
 ): Promise<{ dates: SentinelDate[]; seasonCounts: SeasonCount[] }> => {
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+  // Yrittää vain 429-virheen uudelleen: odottaa Retry-After-ajan tai 2, 4, 8 s
+  const withRetry = async <T>(fn: () => Promise<T>, attempts = 4): Promise<T> => {
+    for (let i = 0; ; i++) {
+      try {
+        return await fn()
+      } catch (err: any) {
+        const status = err?.response?.status
+        if (status !== 429 || i >= attempts - 1) throw err
+        const retryAfter = Number(err?.response?.headers?.['retry-after'])
+        const wait = retryAfter > 0 ? retryAfter * 1000 : 2000 * 2 ** i
+        await sleep(wait + Math.random() * 500)
+      }
+    }
+  }
+
   const limit = createLimit(concurrency)
 
   const settled = await Promise.allSettled(
-    seasons.map(s => limit(() => getSentinelDates(geometry, s.start, s.end, authToken, true)))
+    seasons.map(s =>
+      limit(() =>
+        withRetry(() => getSentinelDates(geometry, s.start, s.end, authToken, true))
+      )
+    )
   )
 
   const dates: SentinelDate[] = []
@@ -173,12 +194,23 @@ export const getSentinelDatesBySeason = async (
       seasonCounts.push({ year, count: res.value.length })
     } else {
       failed.push(year)
-      console.error(`Season ${year} failed:`, res.reason?.message ?? res.reason)
+      console.error(
+        `Season ${year} failed:`,
+        res.reason?.message ?? res.reason,
+        JSON.stringify(res.reason?.response?.data ?? '').slice(0, 300)
+      )
     }
   })
 
   if (failed.length > 0) {
-    throw new Error(`Statistics fetch failed for seasons: ${failed.join(', ')}`)
+    const statuses = [
+      ...new Set(
+        settled
+          .filter((r) => r.status === 'rejected')
+          .map((r) => (r as PromiseRejectedResult).reason?.response?.status ?? 'ei vastausta')
+      ),
+    ]
+    throw new Error(`Statistics fetch failed for seasons: ${failed.join(', ')} (HTTP ${statuses.join('/')})`)
   }
 
   dates.sort((a, b) => b.generationtime.localeCompare(a.generationtime))
@@ -196,7 +228,8 @@ const getSentinelDatesForRange = async (
   geometry: any,
   fromTime: Date | null,
   toTime: Date,
-  authToken: string
+  authToken: string,
+  throwOnError = false
 ): Promise<SentinelDate[]> => {
   if (!fromTime) return getSentinelDates(geometry, fromTime, toTime, authToken)
 
@@ -214,6 +247,7 @@ const getSentinelDatesForRange = async (
     return dates
   } catch (e: any) {
     console.error('getSentinelDatesForRange failed:', e.message)
+    if (throwOnError) throw e
     return []
   }
 }
@@ -290,7 +324,8 @@ export const fetchAndSaveDates = async (
   name: string = '',
   userId: string = '',
   kasvulohkot: any[] = [],
-  saveImages: boolean = true
+  saveImages: boolean = true,
+  throwOnError: boolean = false
 ): Promise<SentinelDate[]> => {
   const id = hash.sha256(geometry)
   const area = geoUtils.getAreaFromGeometry(geometry)
@@ -300,7 +335,7 @@ export const fetchAndSaveDates = async (
     await mongodb.saveDates(id, [], geometry, area ?? 0, name, userId, kasvulohkot)
   }
 
-  const dates = await getSentinelDatesForRange(geometry, fromTime, toTime, authToken)
+  const dates = await getSentinelDatesForRange(geometry, fromTime, toTime, authToken, throwOnError)
   console.log(dates.length, 'dates fetched')
   if (dates.length === 0) return []
 
@@ -339,7 +374,8 @@ export const syncDates = async (
   name: string = '',
   userId: string = '',
   kasvulohkot: any[] = [],
-  saveImages: boolean = true
+  saveImages: boolean = true,
+  throwOnError: boolean = false
 ): Promise<SyncDatesResult | null> => {
   const normalizedGeometry = rewind(geometry, { mutate: false })
   const id = hash.sha256(normalizedGeometry)
@@ -358,20 +394,20 @@ export const syncDates = async (
 
   if (!existing || !existing.dates || existing.dates.length === 0) {
     newDates.push(
-      ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, sentinelTo, authToken, name, userId, kasvulohkot, saveImages)
+      ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, sentinelTo, authToken, name, userId, kasvulohkot, saveImages, throwOnError)
     )
   } else {
     if (existing.dates[0].generationtime < dateTime.zeroDateTime(sentinelTo)) {
       const newFrom = new Date(dateTime.addOneDay(existing.dates[0].generationtime))
       newDates.push(
-        ...await fetchAndSaveDates(normalizedGeometry, newFrom, sentinelTo, authToken, name, userId, [], saveImages)
+        ...await fetchAndSaveDates(normalizedGeometry, newFrom, sentinelTo, authToken, name, userId, [], saveImages, throwOnError)
       )
     }
 
     const oldestDate = existing.dates[existing.dates.length - 1]?.generationtime
     if (oldestDate && sentinelFrom < new Date(oldestDate)) {
       newDates.push(
-        ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, new Date(oldestDate), authToken, name, userId, [], saveImages)
+        ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, new Date(oldestDate), authToken, name, userId, [], saveImages, throwOnError)
       )
     }
 

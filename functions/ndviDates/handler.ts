@@ -52,14 +52,15 @@ export const handler = async (event: any) => {
   }
 
   // ── Normaali käyttäjän ajo (ennallaan) ──
-  const result = await syncDates(
+    const result = await syncDates(
     geometry,
     new Date(event.start_date),
     authToken,
     event.name ?? '',
     event.userId ?? '',
     event.kasvulohkot ?? [],
-    false
+    false,
+    true   // throwOnError: CDSE-virhe ei saa näyttää onnistumiselta
   )
 
   if (!result) {

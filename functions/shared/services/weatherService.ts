@@ -58,7 +58,7 @@ export const getWeatherFromDbOrFetch = async (
   const safeEnd = endDate < cutoff ? endDate : cutoff;
 
   if (startDate >= safeEnd) {
-    console.log(`Weather: skipping ${startDate.toISOString().slice(0,10)} → ${safeEnd.toISOString().slice(0,10)} (future or empty range)`);
+    console.log(`Weather: skipping ${startDate.toISOString().slice(0, 10)} → ${safeEnd.toISOString().slice(0, 10)} (future or empty range)`);
     return [];
   }
 
@@ -67,10 +67,13 @@ export const getWeatherFromDbOrFetch = async (
     const existing = await store.getByRange(geometryHash, startDate, safeEnd);
 
     if (existing.length === 0) {
-      console.log(`Weather: fetching ${startDate.toISOString().slice(0,10)} → ${safeEnd.toISOString().slice(0,10)}`);
+      console.log(`Weather: fetching ${startDate.toISOString().slice(0, 10)} → ${safeEnd.toISOString().slice(0, 10)}`);
+      const t0 = Date.now();
       try {
         const _data = await getWeatherData(geometry, startDate, safeEnd);
+        const t1 = Date.now();
         if (_data) await saveWeatherItems(_data, geometryHash, store);
+        console.log(`Weather ${startDate.toISOString().slice(0, 4)}: fetch ${t1 - t0} ms, save ${Date.now() - t1} ms`);
       } catch (err: unknown) {
         console.warn('Weather initial fetch failed:', err instanceof Error ? err.message : err);
       }
@@ -82,7 +85,7 @@ export const getWeatherFromDbOrFetch = async (
     if (startDate < oldestInDb) {
       const fetchEnd = new Date(oldestInDb);
       fetchEnd.setDate(fetchEnd.getDate() - 1);
-      console.log(`Weather: fetching older ${startDate.toISOString().slice(0,10)} → ${fetchEnd.toISOString().slice(0,10)}`);
+      console.log(`Weather: fetching older ${startDate.toISOString().slice(0, 10)} → ${fetchEnd.toISOString().slice(0, 10)}`);
       try {
         const _data = await getWeatherData(geometry, startDate, fetchEnd);
         if (_data) await saveWeatherItems(_data, geometryHash, store);
@@ -97,7 +100,7 @@ export const getWeatherFromDbOrFetch = async (
     newStart.setDate(newStart.getDate() + 1);
 
     if (newStart < safeEnd) {
-      console.log(`Weather: fetching newer ${newStart.toISOString().slice(0,10)} → ${safeEnd.toISOString().slice(0,10)}`);
+      console.log(`Weather: fetching newer ${newStart.toISOString().slice(0, 10)} → ${safeEnd.toISOString().slice(0, 10)}`);
       try {
         const _data = await getWeatherData(geometry, newStart, safeEnd);
         if (_data) await saveWeatherItems(_data, geometryHash, store);
@@ -105,7 +108,7 @@ export const getWeatherFromDbOrFetch = async (
         console.warn('Weather newer range fetch failed:', err instanceof Error ? err.message : err);
       }
     } else {
-      console.log(`Weather: ${startDate.toISOString().slice(0,10)}–${safeEnd.toISOString().slice(0,10)} up to date`);
+      console.log(`Weather: ${startDate.toISOString().slice(0, 10)}–${safeEnd.toISOString().slice(0, 10)} up to date`);
     }
 
     return await store.getByRange(geometryHash, startDate, safeEnd);

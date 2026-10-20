@@ -56,8 +56,6 @@ export const getWeatherData = async (
 
   const { lat, lon } = getCentroid(geometry);
 
-  console.log(`Weather: fetching ${formatDate(startDate)} → ${formatDate(safeEndDate)}`);
-
     return await fetchWithRetry("https://archive-api.open-meteo.com/v1/archive", {
     latitude: lat,
     longitude: lon,

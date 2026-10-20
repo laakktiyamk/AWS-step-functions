@@ -286,6 +286,13 @@ functions:
       - httpApi:
           path: /api/weather/all
           method: post
+  mlStarter:
+    handler: dist/functions/mlStarter/handler.handler
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 60
+    environment:
+      STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
 
 stepFunctions:
   stateMachines:
@@ -328,7 +335,7 @@ stepFunctions:
                     # Yksi epäonnistunut pelto ei kaada koko erää
                     - ErrorEquals: [States.ALL]
                       ResultPath: null
-                      Next: fieldFailed
+                      Next: failedOrSkip
                   Next: forEachDate
 
                 forEachDate:
@@ -368,7 +375,28 @@ stepFunctions:
                       dateFailed:
                         Type: Pass
                         End: true
-                  Next: fieldDone
+                  Next: doneOrSkip
+
+                # ML-ajoilla (ei jobId:tä) notifier ohitetaan
+                doneOrSkip:
+                  Type: Choice
+                  Choices:
+                    - Variable: $.jobId
+                      IsPresent: true
+                      Next: fieldDone
+                  Default: mlSkip
+
+                failedOrSkip:
+                  Type: Choice
+                  Choices:
+                    - Variable: $.jobId
+                      IsPresent: true
+                      Next: fieldFailed
+                  Default: mlSkip
+
+                mlSkip:
+                  Type: Pass
+                  End: true
 
                 fieldDone:
                   Type: Task

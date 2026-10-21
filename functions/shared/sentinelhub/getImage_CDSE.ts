@@ -1,6 +1,7 @@
 import axios from "axios";
 import { bbox as get_bounding_box } from "@turf/bbox";
-import { calculateHeight, calculateWidth } from "../utils/calculateDim";
+//import { calculateHeight, calculateWidth } from "../utils/calculateDim";
+import { getDimsForResolution } from "../utils/pixelDims";
 
 const CDSE_PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process";
 
@@ -16,6 +17,7 @@ function addOneDay(date: Date | string): string {
   return nextDate.toISOString();
 }
 
+/*
 async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight> {
   const res = 512; //1024;
   let width = res;
@@ -25,7 +27,7 @@ async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight>
     width = await calculateWidth(geometry, height);
   }
   return { width, height };
-}
+}*/
 
 const evalscript = `
 //VERSION=3
@@ -54,7 +56,11 @@ export const getImage = async (
   geometry: GeoJSONPolygon,
   authToken: string
 ): Promise<Buffer | null> => {
-  const { width, height } = await getWidthAndHeight(geometry);
+  
+  
+const IMAGE_METERS_PER_PIXEL = 2; // vaihda 10:een, jos karkeampi kuva riittää
+const { width, height } = getDimsForResolution(geometry, IMAGE_METERS_PER_PIXEL);
+  //const { width, height } = await getWidthAndHeight(geometry);
   const bbox = get_bounding_box(geometry as any);
 
   const requestBody = {

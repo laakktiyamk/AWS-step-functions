@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.login = exports.register = void 0;
+exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.setCheckedUntil = exports.login = exports.register = void 0;
 const User_1 = require("./models/User");
 const Image_1 = require("./models/Image");
 const Dates_1 = require("./models/Dates");
@@ -32,6 +32,17 @@ const login = async (email) => {
     return await User_1.User.findOne({ email: email });
 };
 exports.login = login;
+const setCheckedUntil = async (id, checkedUntil) => {
+    try {
+        await Dates_1.Dates.updateOne({ id }, { $set: { checkedUntil } });
+        return true;
+    }
+    catch (err) {
+        console.error("Error saving checkedUntil:", err.message);
+        return false;
+    }
+};
+exports.setCheckedUntil = setCheckedUntil;
 /**
  * Saves dates data.
  */

@@ -44,6 +44,22 @@ export const login = async (email: string): Promise<IUser | null> => {
   return await User.findOne({ email: email });
 };
 
+
+
+export const setCheckedUntil = async (
+  id: string,
+  checkedUntil: Date
+): Promise<boolean> => {
+  try {
+    await Dates.updateOne({ id }, { $set: { checkedUntil } })
+    return true
+  } catch (err: any) {
+    console.error("Error saving checkedUntil:", err.message)
+    return false
+  }
+}
+
+
 /**
  * Saves dates data.
  */

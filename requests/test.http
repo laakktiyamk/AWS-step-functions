@@ -1,5 +1,5 @@
 @baseUrl = https://s3myhf929d.execute-api.eu-north-1.amazonaws.com
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWQwNjhmOTA0MGViYmY0ODE0ZjM1ZjQiLCJ1c2VybmFtZSI6Imhlc3N1IEhvcG8iLCJpYXQiOjE3OTIxMjI1MjMsImV4cCI6MTc5MjEyNjEyM30.lwoiYJXgd5Rn188RlBxT9bH_HHFGTRJcLAsJpRdloK0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWQ1OTUxOGI4MDRhMjFjNGIyZGU1ZTAiLCJ1c2VybmFtZSI6IkhFU1NVIiwiaWF0IjoxNzkyNzg5MzAxLCJleHAiOjE3OTI3OTI5MDF9.niwnpakZq4MRQC3RRL7LNBjriFDkhYHoLMZ8mzc5cFM
 
 
 
@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
   "email": "hessu@gmail.com",
-  "password": "Rytky#2026"
+  "password": "Miuku@14"
 }
 
 
@@ -19,13 +19,23 @@ Content-Type: application/json
 
 {
   "email": "hessu@gmail.com",
-  "password": "Rytky#2026",
+  "password": "Miuku@14",
   "username": "hessu Hopo"
 }
 
 
 ### 1. Ilman tokenia (odotus: 401 "Token not found.")
 GET {{baseUrl}}/api/fields
+
+
+### kunnat 
+GET {{baseUrl}}/api/municipalities
+Authorization: Bearer {{token}}
+
+
+### kunnat haetaan geojson
+GET {{baseUrl}}/api/municipalities/005
+Authorization: Bearer {{token}}
 
 
 ### Tokenilla (odotus: peltolista)

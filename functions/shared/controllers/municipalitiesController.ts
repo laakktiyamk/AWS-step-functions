@@ -1,0 +1,32 @@
+
+import { Request, Response } from "express";
+import { ensureParcelConnected } from "../mongo/connections";
+import { Municipality } from "../mongo/models/Municipality";
+
+export const municipalitiesList = async (_req: Request, res: Response) => {
+  try {
+    await ensureParcelConnected();
+    const items = await Municipality.find({}, { _id: 0, kunta: 1, nimi: 1, bbox: 1 }).lean();
+    items.sort((a, b) => a.nimi.localeCompare(b.nimi, "fi"));
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch municipalities" });
+  }
+};
+
+export const municipalityByCode = async (req: Request, res: Response) => {
+  try {
+    const kunta = String(req.params.kunta);
+    if (!/^\d{3}$/.test(kunta)) {
+      return res.status(400).json({ message: "Invalid municipality code" });
+    }
+    await ensureParcelConnected();
+    const item = await Municipality.findOne({ kunta }, { _id: 0, kunta: 1, nimi: 1, bbox: 1, geometry: 1 }).lean();
+    if (!item) return res.status(404).json({ message: "Municipality not found" });
+    res.json(item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch municipality" });
+  }
+};

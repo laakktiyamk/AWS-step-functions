@@ -42,7 +42,8 @@ const DatesSchema = new mongoose_1.Schema({
     dates: { type: Array, default: [] },
     geometry: { type: Object, required: true, unique: true },
     area: { type: Number },
-    kasvulohkot: { type: Array, default: [] }, // ← lisäys
+    kasvulohkot: { type: Array, default: [] },
+    checkedUntil: { type: Date, required: false }
 });
 const DatesModel = mongoose_1.default.model("Dates", DatesSchema);
 exports.Dates = DatesModel;

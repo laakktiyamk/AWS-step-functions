@@ -8,7 +8,7 @@ const HASHES = [
   '7147742fb2d8d6cafd09d10bd3229681cdebab2e71e673a18483ec7bfb654b86',
   'cf15c599d97aff8b7920a1b9a6295ecc77f78e6675aab4df31e590cb59cc6044',
 ]
-const BATCH_ID = 'retry1'
+const BATCH_ID = 'test2026'
 
 async function main() {
   await ensureParcelConnected()
@@ -22,8 +22,8 @@ async function main() {
     field_id: `${BATCH_ID}-${i + 1}`,
     target: 'ml',
     batchId: BATCH_ID,
-    start_date: '2020-01-01T00:00:00Z',
-    end_date: '2025-12-31T00:00:00Z',
+    start_date: '2026-04-01T00:00:00Z',
+    end_date: '2026-10-01T00:00:00Z',
     peruslohkotunnus: d.peruslohkotunnus,
     vuosi: d.vuosi,
     pinta_ala: d.pinta_ala,
@@ -32,8 +32,8 @@ async function main() {
   }))
 
   const json = JSON.stringify({ fields })
-  fs.writeFileSync('sf-input-retry1.json', json)
-  console.log(`sf-input-retry1.json: peltoja ${fields.length}, koko ${(json.length / 1024).toFixed(1)} kt`)
+  fs.writeFileSync('sf-input-test2026.json', json)
+  console.log(`sf-input-test2026.json: peltoja ${fields.length}, koko ${(json.length / 1024).toFixed(1)} kt`)
 }
 
 main()

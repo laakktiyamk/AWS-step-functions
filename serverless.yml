@@ -205,6 +205,26 @@ functions:
           path: /api/fields/info
           method: post
   
+  municipalitiesList:
+    handler: dist/functions/municipalities/handler.list
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/municipalities
+          method: get
+
+  municipalityByCode:
+    handler: dist/functions/municipalities/handler.byCode
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/municipalities/{kunta}
+          method: get
+
   jobGet:
     handler: dist/functions/jobs/handler.get
     runtime: nodejs20.x

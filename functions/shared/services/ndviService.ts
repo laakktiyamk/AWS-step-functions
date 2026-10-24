@@ -236,7 +236,7 @@ const getSentinelDatesForRange = async (
   const ranges: Season[] = getGrowingSeasons(fromTime.getUTCFullYear(), toTime.getUTCFullYear())
     .map(s => ({
       start: s.start > fromTime ? s.start : fromTime,
-      end:   s.end   < toTime   ? s.end   : toTime,
+      end: s.end < toTime ? s.end : toTime,
     }))
     .filter(r => r.start < r.end)
 
@@ -358,8 +358,10 @@ export const fetchAndSaveDates = async (
     await mongodb.updateDates(id, newDates, userId)
   }
 
+
   return datesToSave   // palautetaan vain onnistuneet
 }
+
 
 // ============================================================
 // syncDates — tarkistaa mitä dataa on kannassa ja hakee puuttuvan.
@@ -389,6 +391,16 @@ export const syncDates = async (
   const sentinelFrom = seasons[0].start
   const sentinelTo = seasons[seasons.length - 1].end
 
+  const LAG_DAYS = 2
+  const dayStr = (d: Date) => d.toISOString().slice(0, 10)
+  const startOfNextDay = (d: Date) =>
+    new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1))
+  const endOfDay = (d: Date) =>
+    new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999))
+
+  const lagged = endOfDay(new Date(Date.now() - LAG_DAYS * 24 * 60 * 60 * 1000))
+  const target = lagged < sentinelTo ? lagged : sentinelTo
+
   const existing = await mongodb.getDates(id)
   const newDates: SentinelDate[] = []
 
@@ -397,11 +409,24 @@ export const syncDates = async (
       ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, sentinelTo, authToken, name, userId, kasvulohkot, saveImages, throwOnError)
     )
   } else {
-    if (existing.dates[0].generationtime < dateTime.zeroDateTime(sentinelTo)) {
-      const newFrom = new Date(dateTime.addOneDay(existing.dates[0].generationtime))
-      newDates.push(
-        ...await fetchAndSaveDates(normalizedGeometry, newFrom, sentinelTo, authToken, name, userId, [], saveImages, throwOnError)
-      )
+    const checkedUntil: Date | null =
+      existing.checkedUntil
+        ? new Date(existing.checkedUntil)
+        : existing.dates[0]
+          ? new Date(existing.dates[0].generationtime)
+          : null
+
+    if (!checkedUntil || dayStr(checkedUntil) < dayStr(target)) {
+      const newFrom = checkedUntil ? startOfNextDay(checkedUntil) : sentinelFrom
+      try {
+        newDates.push(
+          ...await fetchAndSaveDates(normalizedGeometry, newFrom, target, authToken, name, userId, [], saveImages, true)
+        )
+        await mongodb.setCheckedUntil(id, target)
+      } catch (e: any) {
+        console.error('syncDates tail fetch failed:', e.message)
+        if (throwOnError) throw e
+      }
     }
 
     const oldestDate = existing.dates[existing.dates.length - 1]?.generationtime
@@ -444,23 +469,37 @@ export const syncMlDates = async (
   if (seasons.length === 0) return null
 
   console.log('syncMlDates: findOne')
-  const existing: any = await MlData.findOne({ geometryHash }).select('dates').lean()
-  console.log('syncMlDates: findOne done', existing?.dates?.length ?? 0)
-  const alreadyFetched = (existing?.dates?.length ?? 0) > 0
+  const existing: any = await MlData.findOne({ geometryHash }).select('dates seasonCounts').lean()
+  const oldDates: any[] = existing?.dates ?? []
+  const oldCounts: SeasonCount[] = existing?.seasonCounts ?? []
+  console.log('syncMlDates: findOne done', oldDates.length)
 
-  if (!alreadyFetched) {
-    console.log('syncMlDates: stats')
-    const { dates, seasonCounts } = await getSentinelDatesBySeason(
-      normalizedGeometry, seasons, authToken
-    )
-    console.log('syncMlDates: stats done', dates.length)
-    if (dates.length === 0) return null   // ei kirjoiteta tyhjää dokumenttia
+  // Haetaan vain kaudet, joita ei ole vielä tallennettu
+  const haveYears = new Set(oldCounts.map(c => c.year))
+  const missing = seasons.filter(s => !haveYears.has(s.start.getUTCFullYear()))
+  if (missing.length === 0) return { geometry: normalizedGeometry, seasons }
 
+  console.log('syncMlDates: stats', missing.length, 'kautta')
+  const { dates: newDates, seasonCounts: newCounts } = await getSentinelDatesBySeason(
+    normalizedGeometry, missing, authToken
+  )
+  console.log('syncMlDates: stats done', newDates.length)
+
+  if (oldDates.length === 0) {
+    // Uusi pelto: kuten ennenkin
+    if (newDates.length === 0) return null   // ei kirjoiteta tyhjää dokumenttia
     await MlData.updateOne(
       { geometryHash },
-      { $set: { geometryHash, batchId, geometry: normalizedGeometry, kasvulohkot, dates, seasonCounts, ...meta } },
+      { $set: { geometryHash, batchId, geometry: normalizedGeometry, kasvulohkot, dates: newDates, seasonCounts: newCounts, ...meta } },
       { upsert: true }
     )
+  } else {
+    // Olemassa oleva pelto: yhdistetään, uusin havainto ensin
+    const dates = [...newDates, ...oldDates].sort((a, b) =>
+      String(b.generationtime).localeCompare(String(a.generationtime))
+    )
+    const seasonCounts = [...oldCounts, ...newCounts].sort((a, b) => a.year - b.year)
+    await MlData.updateOne({ geometryHash }, { $set: { dates, seasonCounts } })
   }
 
   return { geometry: normalizedGeometry, seasons }

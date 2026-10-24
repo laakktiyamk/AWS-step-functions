@@ -32,6 +32,7 @@ export interface IDates extends Document {
   geometry: IGeometry;
   area: number;
   kasvulohkot: IKasvulohko[];
+  checkedUntil?: Date;
 }
 
 const DatesSchema: Schema = new Schema({
@@ -41,7 +42,8 @@ const DatesSchema: Schema = new Schema({
   dates:       { type: Array, default: [] },
   geometry:    { type: Object, required: true, unique: true },
   area:        { type: Number },
-  kasvulohkot: { type: Array, default: [] },  // ← lisäys
+  kasvulohkot: { type: Array, default: [] },
+  checkedUntil: { type: Date, required: false }
 });
 
 const DatesModel: mongoose.Model<IDates> = mongoose.model<IDates>("Dates", DatesSchema);

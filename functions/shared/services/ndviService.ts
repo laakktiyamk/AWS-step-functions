@@ -1,3 +1,4 @@
+import axios from 'axios'
 import rewind from '@turf/rewind'
 import * as hash from '../utils/hash'
 import * as dateTime from '../utils/dateTime'
@@ -93,6 +94,46 @@ function createLimit(concurrency: number) {
       else queue.push(run)
     })
   }
+}
+
+
+// ============================================================
+// hasNewScenes — kysyy CDSE:n katalogilta, onko välillä uusia Sentinel-2-kuvia
+// Ei kuluta PU:ta (katalogihaku), palauttaa true heti ensimmäisestä löydetystä kuvasta
+// Virheitä ei nielaista: hakuvirhe heitetään, jotta kutsuja ei merkitse väliä tarkistetuksi
+// ============================================================
+export const hasNewScenes = async (
+  geometry: any,
+  fromTime: Date,
+  toTime: Date,
+  authToken: string
+): Promise<boolean> => {
+  const catalogUrl = 'https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search'
+  const maxCloud = 80 // käytä samaa rajaa kuin nykyisessä haussasi
+
+  const ranges = getGrowingSeasons(fromTime.getUTCFullYear(), toTime.getUTCFullYear())
+    .map(s => ({
+      start: s.start > fromTime ? s.start : fromTime,
+      end: s.end < toTime ? s.end : toTime,
+    }))
+    .filter(r => r.start < r.end)
+
+  for (const r of ranges) {
+    const res = await axios.post(
+      catalogUrl,
+      {
+        collections: ['sentinel-2-l2a'],
+        datetime: `${r.start.toISOString()}/${r.end.toISOString()}`,
+        intersects: geometry,
+        limit: 1,
+        filter: `eo:cloud_cover < ${maxCloud}`,
+        'filter-lang': 'cql2-text',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } }
+    )
+    if (res.data?.features?.length > 0) return true
+  }
+  return false
 }
 
 // ============================================================
@@ -418,10 +459,14 @@ export const syncDates = async (
 
     if (!checkedUntil || dayStr(checkedUntil) < dayStr(target)) {
       const newFrom = checkedUntil ? startOfNextDay(checkedUntil) : sentinelFrom
-      try {
-        newDates.push(
-          ...await fetchAndSaveDates(normalizedGeometry, newFrom, target, authToken, name, userId, [], saveImages, true)
-        )
+      try { 
+        const hasNew = await hasNewScenes(normalizedGeometry, newFrom, target, authToken)
+        console.log('syncDates: hasNewScenes', hasNew, dayStr(newFrom), '→', dayStr(target))
+        if (hasNew) {
+          newDates.push(
+            ...await fetchAndSaveDates(normalizedGeometry, newFrom, target, authToken, name, userId, [], saveImages, true)
+          )
+        }
         await mongodb.setCheckedUntil(id, target)
       } catch (e: any) {
         console.error('syncDates tail fetch failed:', e.message)

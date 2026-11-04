@@ -5,11 +5,12 @@ import { feature, featureCollection } from "@turf/helpers";
 
 const MIN_OVERLAP = 0.3;
 
-export const getByGeometry = async (geometry: any) => {
+export const getByGeometry = async (geometry: any, vuosi: number = 2025) => {
   const parcels: any[] = await CropParcel.find(
-    { geometry: { $geoIntersects: { $geometry: geometry } } },
+    { vuosi, geometry: { $geoIntersects: { $geometry: geometry } } },
     {
       peruslohkotunnus: 1, // väliaikainen, poistetaan kun suodatus on varmistettu
+      vuosi: 1,            // väliaikainen, testausta varten
       tunnus: 1,
       lohkonumero: 1,
       kasvikoodi: 1,

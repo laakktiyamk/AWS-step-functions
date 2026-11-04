@@ -9,9 +9,10 @@ const intersect_1 = __importDefault(require("@turf/intersect"));
 const area_1 = __importDefault(require("@turf/area"));
 const helpers_1 = require("@turf/helpers");
 const MIN_OVERLAP = 0.3;
-const getByGeometry = async (geometry) => {
-    const parcels = await CropParcel_1.CropParcel.find({ geometry: { $geoIntersects: { $geometry: geometry } } }, {
+const getByGeometry = async (geometry, vuosi = 2025) => {
+    const parcels = await CropParcel_1.CropParcel.find({ vuosi, geometry: { $geoIntersects: { $geometry: geometry } } }, {
         peruslohkotunnus: 1, // väliaikainen, poistetaan kun suodatus on varmistettu
+        vuosi: 1, // väliaikainen, testausta varten
         tunnus: 1,
         lohkonumero: 1,
         kasvikoodi: 1,

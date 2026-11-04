@@ -1,5 +1,5 @@
 @baseUrl = https://s3myhf929d.execute-api.eu-north-1.amazonaws.com
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWQ1OTUxOGI4MDRhMjFjNGIyZGU1ZTAiLCJ1c2VybmFtZSI6IkhFU1NVIiwiaWF0IjoxNzkyNzg5MzAxLCJleHAiOjE3OTI3OTI5MDF9.niwnpakZq4MRQC3RRL7LNBjriFDkhYHoLMZ8mzc5cFM
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWQ1OTUxOGI4MDRhMjFjNGIyZGU1ZTAiLCJ1c2VybmFtZSI6IkhFU1NVIiwiaWF0IjoxNzkzNzQyNTczLCJleHAiOjE3OTM3NDYxNzN9.6VySbMihyUGt44PbM_EihVJ97dkse8mgl35-UxCdutA
 
 
 
@@ -359,4 +359,84 @@ Content-Type: application/json
         ]
     ]
   }
+}
+
+
+### 2025 kasvulohkot
+POST {{baseUrl}}/api/fields/crop-parcels
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [24.019017492777, 64.233073829478],
+            [24.019347556527, 64.232990313561],
+            [24.019615315522, 64.232919904435],
+            [24.020482755912, 64.233076168492],
+            [24.022361546928, 64.233414777739],
+            [24.022304933188, 64.233512300717],
+            [24.022162986048, 64.233683337832],
+            [24.020810232778, 64.233413298021],
+            [24.020072476793, 64.23327072941],
+            [24.019017492777, 64.233073829478]
+          ]
+        ]
+      },
+  "vuosi": 2025
+}
+
+### 2024 kasvulohkot
+POST {{baseUrl}}/api/fields/crop-parcels
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [24.019017492777, 64.233073829478],
+            [24.019347556527, 64.232990313561],
+            [24.019615315522, 64.232919904435],
+            [24.020482755912, 64.233076168492],
+            [24.022361546928, 64.233414777739],
+            [24.022304933188, 64.233512300717],
+            [24.022162986048, 64.233683337832],
+            [24.020810232778, 64.233413298021],
+            [24.020072476793, 64.23327072941],
+            [24.019017492777, 64.233073829478]
+          ]
+        ]
+      },
+  "vuosi": 2024
+}
+
+
+### 2020 kasvulohkot
+POST {{baseUrl}}/api/fields/crop-parcels
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [24.019017492777, 64.233073829478],
+            [24.019347556527, 64.232990313561],
+            [24.019615315522, 64.232919904435],
+            [24.020482755912, 64.233076168492],
+            [24.022361546928, 64.233414777739],
+            [24.022304933188, 64.233512300717],
+            [24.022162986048, 64.233683337832],
+            [24.020810232778, 64.233413298021],
+            [24.020072476793, 64.23327072941],
+            [24.019017492777, 64.233073829478]
+          ]
+        ]
+      },
+  "vuosi": 2020
 }

@@ -36,7 +36,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.syncAOI = exports.syncMlDates = exports.syncDates = exports.fetchAndSaveDates = exports.fetchWeather = exports.fetchAndSaveImage = exports.getSentinelDatesBySeason = exports.getSentinelDates = void 0;
+exports.syncAOI = exports.syncMlDates = exports.syncDates = exports.fetchAndSaveDates = exports.fetchWeather = exports.fetchAndSaveImage = exports.getSentinelDatesBySeason = exports.getSentinelDates = exports.hasNewScenes = void 0;
+const axios_1 = __importDefault(require("axios"));
 const rewind_1 = __importDefault(require("@turf/rewind"));
 const hash = __importStar(require("../utils/hash"));
 const dateTime = __importStar(require("../utils/dateTime"));
@@ -79,6 +80,35 @@ function createLimit(concurrency) {
         });
     };
 }
+// ============================================================
+// hasNewScenes — kysyy CDSE:n katalogilta, onko välillä uusia Sentinel-2-kuvia
+// Ei kuluta PU:ta (katalogihaku), palauttaa true heti ensimmäisestä löydetystä kuvasta
+// Virheitä ei nielaista: hakuvirhe heitetään, jotta kutsuja ei merkitse väliä tarkistetuksi
+// ============================================================
+const hasNewScenes = async (geometry, fromTime, toTime, authToken) => {
+    const catalogUrl = 'https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search';
+    const maxCloud = 80; // käytä samaa rajaa kuin nykyisessä haussasi
+    const ranges = (0, growingSeasonUtils_1.getGrowingSeasons)(fromTime.getUTCFullYear(), toTime.getUTCFullYear())
+        .map(s => ({
+        start: s.start > fromTime ? s.start : fromTime,
+        end: s.end < toTime ? s.end : toTime,
+    }))
+        .filter(r => r.start < r.end);
+    for (const r of ranges) {
+        const res = await axios_1.default.post(catalogUrl, {
+            collections: ['sentinel-2-l2a'],
+            datetime: `${r.start.toISOString()}/${r.end.toISOString()}`,
+            intersects: geometry,
+            limit: 1,
+            filter: `eo:cloud_cover < ${maxCloud}`,
+            'filter-lang': 'cql2-text',
+        }, { headers: { Authorization: `Bearer ${authToken}` } });
+        if (res.data?.features?.length > 0)
+            return true;
+    }
+    return false;
+};
+exports.hasNewScenes = hasNewScenes;
 // ============================================================
 // getSentinelDates — hakee statistiikat CDSE:ltä
 // throwOnError: true → hakuvirhe heitetään eikä muutu tyhjäksi listaksi
@@ -296,7 +326,11 @@ const syncDates = async (geometry, startDate, authToken, name = '', userId = '',
         if (!checkedUntil || dayStr(checkedUntil) < dayStr(target)) {
             const newFrom = checkedUntil ? startOfNextDay(checkedUntil) : sentinelFrom;
             try {
-                newDates.push(...await (0, exports.fetchAndSaveDates)(normalizedGeometry, newFrom, target, authToken, name, userId, [], saveImages, true));
+                const hasNew = await (0, exports.hasNewScenes)(normalizedGeometry, newFrom, target, authToken);
+                console.log('syncDates: hasNewScenes', hasNew, dayStr(newFrom), '→', dayStr(target));
+                if (hasNew) {
+                    newDates.push(...await (0, exports.fetchAndSaveDates)(normalizedGeometry, newFrom, target, authToken, name, userId, [], saveImages, true));
+                }
                 await mongodb.setCheckedUntil(id, target);
             }
             catch (e) {

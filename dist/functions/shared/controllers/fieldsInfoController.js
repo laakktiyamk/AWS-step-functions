@@ -36,11 +36,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteField = exports.getFields = exports.getFieldInfo = void 0;
+exports.checkAoi = exports.deleteField = exports.getFields = exports.getFieldInfo = void 0;
 const centroid_1 = __importDefault(require("@turf/centroid"));
 const rewind_1 = __importDefault(require("@turf/rewind"));
 const axios_1 = __importDefault(require("axios"));
 const mongodb = __importStar(require("../mongo/mongodb"));
+const fieldService_1 = require("../services/fieldService");
 // ── Reverse geocoding Nominatimilla ──────────────────────────
 const reverseGeocode = async (lat, lon) => {
     try {
@@ -149,26 +150,17 @@ const getFields = async (req, res, next) => {
 };
 exports.getFields = getFields;
 // DELETE /api/fields/:id
-const deleteField = async (req, res, next) => {
+const deleteField = async (req, res) => {
     try {
-        const userId = req.user._id;
-        const id = req.params.id;
-        // Tarkistetaan että pelto kuuluu käyttäjälle
-        const data = await mongodb.getDates(id);
-        if (!data) {
+        const result = await (0, fieldService_1.removeFieldForUser)(req.params.id, req.user._id);
+        if (result === 'not_found') {
             res.status(404).json({ error: 'Field not found' });
             return;
         }
-        if (!data.userIds?.includes(userId)) {
+        if (result === 'forbidden') {
             res.status(403).json({ error: 'Forbidden' });
             return;
         }
-        // Poistetaan Dates-dokumentti, Images ja Weather
-        await Promise.all([
-            mongodb.deleteDates(id),
-            mongodb.deleteImagesByHash(id),
-            mongodb.deleteWeatherByHash(id),
-        ]);
         res.status(200).json({ ok: true });
     }
     catch (err) {
@@ -177,3 +169,18 @@ const deleteField = async (req, res, next) => {
     }
 };
 exports.deleteField = deleteField;
+const checkAoi = async (req, res) => {
+    const geometry = req.body?.geometry;
+    if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) {
+        res.status(400).json({ error: 'Polygon or MultiPolygon geometry required' });
+        return;
+    }
+    try {
+        res.json(await (0, fieldService_1.getAoiStatus)(geometry, req.user._id));
+    }
+    catch (err) {
+        console.error('checkAoi error:', err);
+        res.status(500).json({ error: 'check failed' });
+    }
+};
+exports.checkAoi = checkAoi;

@@ -343,12 +343,17 @@ const syncDates = async (geometry, startDate, authToken, name = '', userId = '',
         if (oldestDate && sentinelFrom < new Date(oldestDate)) {
             newDates.push(...await (0, exports.fetchAndSaveDates)(normalizedGeometry, sentinelFrom, new Date(oldestDate), authToken, name, userId, [], saveImages, throwOnError));
         }
-        if (kasvulohkot.length > 0 && (!existing.kasvulohkot || existing.kasvulohkot.length === 0)) {
-            await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId, kasvulohkot);
+        const needsAttach = (userId && !existing.userIds?.includes(userId)) ||
+            (name && !existing.name) ||
+            (kasvulohkot.length > 0 && !existing.kasvulohkot?.length);
+        if (needsAttach) {
+            await mongodb.attachUserToDates(id, userId, name, kasvulohkot);
         }
-        else if ((name && !existing.name) || (userId && !existing.userIds?.includes(userId))) {
-            await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId);
-        }
+        /*if (kasvulohkot.length > 0 && (!existing.kasvulohkot || existing.kasvulohkot.length === 0)) {
+          await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId, kasvulohkot)
+        } else if ((name && !existing.name) || (userId && !existing.userIds?.includes(userId))) {
+          await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId)
+        }*/
     }
     return { geometry: normalizedGeometry, seasons, newDates };
 };

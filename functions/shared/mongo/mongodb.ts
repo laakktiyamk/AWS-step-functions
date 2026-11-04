@@ -67,7 +67,6 @@ export const setCheckedUntil = async (
 /**
  * saveDates — lisätty userId $addToSet:lla (ei duplikaatteja)
  */
-// ── Korvaa mongodb.ts:ssä saveDates-funktio tällä ──────────────────────────
 
 export const saveDates = async (
   id: string,
@@ -557,3 +556,49 @@ export const deleteWeatherByHash = async (geometryHash: string): Promise<boolean
   }
 };
 
+export const removeUserFromDates = async (id: string, userId: string) =>
+  Dates.findOneAndUpdate(
+    { id, userIds: userId },
+    { $pull: { userIds: userId } },
+    { returnDocument: 'after' }
+  ).lean();
+
+// Poistaa dokumentin vain, jos kukaan ei enää käytä sitä (atominen ehto)
+export const deleteDatesIfOrphaned = async (id: string): Promise<boolean> => {
+  const r = await Dates.deleteOne({ id, userIds: { $size: 0 } });
+  return r.deletedCount === 1;
+};
+
+
+/**
+ * Liittää käyttäjän jo olemassa olevaan AOI-dokumenttiin koskematta dates-listaan.
+ * Nimi ja kasvulohkot asetetaan vain, jos ne puuttuvat (ensimmäinen kirjoittaja voittaa).
+ */
+export const attachUserToDates = async (
+  id: string,
+  userId: string,
+  name: string = '',
+  kasvulohkot: any[] = []
+): Promise<boolean> => {
+  try {
+    if (userId) {
+      await Dates.updateOne({ id }, { $addToSet: { userIds: userId } });
+    }
+    if (name) {
+      await Dates.updateOne(
+        { id, $or: [{ name: { $exists: false } }, { name: '' }] },
+        { $set: { name } }
+      );
+    }
+    if (kasvulohkot.length > 0) {
+      await Dates.updateOne(
+        { id, $or: [{ kasvulohkot: { $exists: false } }, { kasvulohkot: { $size: 0 } }] },
+        { $set: { kasvulohkot } }
+      );
+    }
+    return true;
+  } catch (err: any) {
+    console.error('attachUserToDates error:', err.message);
+    return false;
+  }
+};

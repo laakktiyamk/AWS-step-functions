@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.setCheckedUntil = exports.login = exports.register = void 0;
+exports.attachUserToDates = exports.deleteDatesIfOrphaned = exports.removeUserFromDates = exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.setCheckedUntil = exports.login = exports.register = void 0;
 const User_1 = require("./models/User");
 const Image_1 = require("./models/Image");
 const Dates_1 = require("./models/Dates");
@@ -49,7 +49,6 @@ exports.setCheckedUntil = setCheckedUntil;
 /**
  * saveDates — lisätty userId $addToSet:lla (ei duplikaatteja)
  */
-// ── Korvaa mongodb.ts:ssä saveDates-funktio tällä ──────────────────────────
 const saveDates = async (id, data, geometry, area, name = '', userId = '', kasvulohkot = [] // ← lisäys
 ) => {
     try {
@@ -490,3 +489,34 @@ const deleteWeatherByHash = async (geometryHash) => {
     }
 };
 exports.deleteWeatherByHash = deleteWeatherByHash;
+const removeUserFromDates = async (id, userId) => Dates_1.Dates.findOneAndUpdate({ id, userIds: userId }, { $pull: { userIds: userId } }, { returnDocument: 'after' }).lean();
+exports.removeUserFromDates = removeUserFromDates;
+// Poistaa dokumentin vain, jos kukaan ei enää käytä sitä (atominen ehto)
+const deleteDatesIfOrphaned = async (id) => {
+    const r = await Dates_1.Dates.deleteOne({ id, userIds: { $size: 0 } });
+    return r.deletedCount === 1;
+};
+exports.deleteDatesIfOrphaned = deleteDatesIfOrphaned;
+/**
+ * Liittää käyttäjän jo olemassa olevaan AOI-dokumenttiin koskematta dates-listaan.
+ * Nimi ja kasvulohkot asetetaan vain, jos ne puuttuvat (ensimmäinen kirjoittaja voittaa).
+ */
+const attachUserToDates = async (id, userId, name = '', kasvulohkot = []) => {
+    try {
+        if (userId) {
+            await Dates_1.Dates.updateOne({ id }, { $addToSet: { userIds: userId } });
+        }
+        if (name) {
+            await Dates_1.Dates.updateOne({ id, $or: [{ name: { $exists: false } }, { name: '' }] }, { $set: { name } });
+        }
+        if (kasvulohkot.length > 0) {
+            await Dates_1.Dates.updateOne({ id, $or: [{ kasvulohkot: { $exists: false } }, { kasvulohkot: { $size: 0 } }] }, { $set: { kasvulohkot } });
+        }
+        return true;
+    }
+    catch (err) {
+        console.error('attachUserToDates error:', err.message);
+        return false;
+    }
+};
+exports.attachUserToDates = attachUserToDates;

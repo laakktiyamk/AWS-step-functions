@@ -14,6 +14,8 @@ provider:
       allowedOrigins:
         - http://localhost:5173
         - https://d22ng9fbvq00j3.cloudfront.net
+        - https://www.ndvimonitor.online
+        - https://ndvimonitor.online
       allowedHeaders:
         - Content-Type
         - Authorization
@@ -193,6 +195,16 @@ functions:
     events:
       - httpApi:
           path: /api/fields/crop-parcels
+          method: post
+
+  fieldsCheckAoi:
+    handler: dist/functions/fields/handler.checkAoi
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/check-aoi
           method: post
 
   fieldsInfo:

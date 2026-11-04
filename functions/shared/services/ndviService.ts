@@ -481,11 +481,20 @@ export const syncDates = async (
       )
     }
 
-    if (kasvulohkot.length > 0 && (!existing.kasvulohkot || existing.kasvulohkot.length === 0)) {
+    const needsAttach =
+      (userId && !existing.userIds?.includes(userId)) ||
+      (name && !existing.name) ||
+      (kasvulohkot.length > 0 && !existing.kasvulohkot?.length)
+
+    if (needsAttach) {
+      await mongodb.attachUserToDates(id, userId, name, kasvulohkot)
+    }
+
+    /*if (kasvulohkot.length > 0 && (!existing.kasvulohkot || existing.kasvulohkot.length === 0)) {
       await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId, kasvulohkot)
     } else if ((name && !existing.name) || (userId && !existing.userIds?.includes(userId))) {
       await mongodb.saveDates(id, existing.dates, normalizedGeometry, existing.area ?? 0, name || existing.name, userId)
-    }
+    }*/
   }
 
   return { geometry: normalizedGeometry, seasons, newDates }

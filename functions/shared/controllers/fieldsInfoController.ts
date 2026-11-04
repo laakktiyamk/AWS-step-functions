@@ -4,6 +4,8 @@ import rewind from '@turf/rewind';
 import axios from 'axios';
 import { Geometry } from 'geojson';
 import * as mongodb from '../mongo/mongodb';
+import { removeFieldForUser, getAoiStatus } from '../services/fieldService'
+
 
 interface JwtPayload {
   _id: string;
@@ -133,35 +135,30 @@ export const getFields = async (
 };
 
 // DELETE /api/fields/:id
-export const deleteField = async (
-  req: Request,
-  res: Response,
-  next?: NextFunction
-): Promise<void> => {
+
+export const deleteField = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user!._id;
-    const id = req.params.id as string;
-    // Tarkistetaan että pelto kuuluu käyttäjälle
-    const data = await mongodb.getDates(id);
-    if (!data) {
-      res.status(404).json({ error: 'Field not found' });
-      return;
-    }
-    if (!data.userIds?.includes(userId)) {
-      res.status(403).json({ error: 'Forbidden' });
-      return;
-    }
-
-    // Poistetaan Dates-dokumentti, Images ja Weather
-    await Promise.all([
-      mongodb.deleteDates(id),
-      mongodb.deleteImagesByHash(id),
-      mongodb.deleteWeatherByHash(id),
-    ]);
-
-    res.status(200).json({ ok: true });
+    const result = await removeFieldForUser(req.params.id as string, req.user!._id)
+    if (result === 'not_found') { res.status(404).json({ error: 'Field not found' }); return }
+    if (result === 'forbidden') { res.status(403).json({ error: 'Forbidden' }); return }
+    res.status(200).json({ ok: true })
   } catch (err: unknown) {
-    console.error('deleteField error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('deleteField error:', err)
+    res.status(500).json({ error: 'Internal server error' })
   }
-};
+}
+
+export const checkAoi = async (req: Request, res: Response): Promise<void> => {
+  const geometry = req.body?.geometry
+  if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) {
+    res.status(400).json({ error: 'Polygon or MultiPolygon geometry required' })
+    return
+  }
+  try {
+    res.json(await getAoiStatus(geometry, req.user!._id))
+  } catch (err) {
+    console.error('checkAoi error:', err)
+    res.status(500).json({ error: 'check failed' })
+  }
+}
+

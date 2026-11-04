@@ -1,5 +1,5 @@
 @baseUrl = https://s3myhf929d.execute-api.eu-north-1.amazonaws.com
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWQ1OTUxOGI4MDRhMjFjNGIyZGU1ZTAiLCJ1c2VybmFtZSI6IkhFU1NVIiwiaWF0IjoxNzkzNzQyNTczLCJleHAiOjE3OTM3NDYxNzN9.6VySbMihyUGt44PbM_EihVJ97dkse8mgl35-UxCdutA
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWViNjYyNTJjZDY5NGJiMDMzYjRmMDYiLCJ1c2VybmFtZSI6IkFrdSIsImlhdCI6MTc5MzgzMDgyMywiZXhwIjoxNzkzODM0NDIzfQ.UE217EOt7imQadf5pKfWWDOu8B2bgTOz57eMa2Dj4GA
 
 
 
@@ -12,6 +12,14 @@ Content-Type: application/json
   "password": "Miuku@14"
 }
 
+### Login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "aku@gmail.com",
+  "password": "Miuku@14"
+}
 
 ### Signup
 POST {{baseUrl}}/api/user/register
@@ -22,6 +30,22 @@ Content-Type: application/json
   "password": "Miuku@14",
   "username": "hessu Hopo"
 }
+
+### Signup
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "aku@gmail.com",
+  "password": "Miuku@14",
+  "username": "Aku Ankka"
+}
+
+
+
+
+
+
 
 
 ### 1. Ilman tokenia (odotus: 401 "Token not found.")
@@ -440,3 +464,287 @@ Authorization: Bearer {{token}}
       },
   "vuosi": 2020
 }
+
+
+### TESTI 1: pelto ei ole kannassa → odotetaan status "none"
+POST {{baseUrl}}/api/fields/check-aoi
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[[24.0300, 64.2400], [24.0310, 64.2400], [24.0310, 64.2406], [24.0300, 64.2406], [24.0300, 64.2400]]]
+  }
+}
+
+### A:n peltolista
+# @name listA
+GET {{baseUrl}}/api/fields
+Authorization: Bearer {{token}}
+
+### TESTI 2: pelto on käyttäjän A omalla listalla → odotetaan status "mine"
+POST {{baseUrl}}/api/fields/check-aoi
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            26.44341551,
+            64.16991408
+          ],
+          [
+            26.4436989,
+            64.16974412
+          ],
+          [
+            26.44391693,
+            64.16960618
+          ],
+          [
+            26.44439838,
+            64.16934803
+          ],
+          [
+            26.44459763,
+            64.16913057
+          ],
+          [
+            26.44479838,
+            64.1689872
+          ],
+          [
+            26.44499246,
+            64.16892066
+          ],
+          [
+            26.44583991,
+            64.1688095
+          ],
+          [
+            26.4463283,
+            64.16876391
+          ],
+          [
+            26.44713311,
+            64.16866413
+          ],
+          [
+            26.44791997,
+            64.16856233
+          ],
+          [
+            26.44830941,
+            64.16852816
+          ],
+          [
+            26.44875425,
+            64.16853405
+          ],
+          [
+            26.45046343,
+            64.16861338
+          ],
+          [
+            26.45193028,
+            64.16868614
+          ],
+          [
+            26.45218119,
+            64.16894883
+          ],
+          [
+            26.45027023,
+            64.17034019
+          ],
+          [
+            26.44815344,
+            64.17023337
+          ],
+          [
+            26.44788142,
+            64.17025898
+          ],
+          [
+            26.44576993,
+            64.17085368
+          ],
+          [
+            26.44521451,
+            64.1710245
+          ],
+          [
+            26.44477413,
+            64.17076147
+          ],
+          [
+            26.44341551,
+            64.16991408
+          ]
+        ],
+        [
+          [
+            26.447824,
+            64.16898599
+          ],
+          [
+            26.44781806,
+            64.16908417
+          ],
+          [
+            26.44809902,
+            64.16909154
+          ],
+          [
+            26.44812025,
+            64.1689928
+          ],
+          [
+            26.447824,
+            64.16898599
+          ]
+        ]
+      ]
+    }
+}
+
+### TESTI 3: sama geometria, mutta B:n tokenilla → odotetaan status "shared"
+POST {{baseUrl}}/api/fields/check-aoi
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+  {
+  "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            26.44341551,
+            64.16991408
+          ],
+          [
+            26.4436989,
+            64.16974412
+          ],
+          [
+            26.44391693,
+            64.16960618
+          ],
+          [
+            26.44439838,
+            64.16934803
+          ],
+          [
+            26.44459763,
+            64.16913057
+          ],
+          [
+            26.44479838,
+            64.1689872
+          ],
+          [
+            26.44499246,
+            64.16892066
+          ],
+          [
+            26.44583991,
+            64.1688095
+          ],
+          [
+            26.4463283,
+            64.16876391
+          ],
+          [
+            26.44713311,
+            64.16866413
+          ],
+          [
+            26.44791997,
+            64.16856233
+          ],
+          [
+            26.44830941,
+            64.16852816
+          ],
+          [
+            26.44875425,
+            64.16853405
+          ],
+          [
+            26.45046343,
+            64.16861338
+          ],
+          [
+            26.45193028,
+            64.16868614
+          ],
+          [
+            26.45218119,
+            64.16894883
+          ],
+          [
+            26.45027023,
+            64.17034019
+          ],
+          [
+            26.44815344,
+            64.17023337
+          ],
+          [
+            26.44788142,
+            64.17025898
+          ],
+          [
+            26.44576993,
+            64.17085368
+          ],
+          [
+            26.44521451,
+            64.1710245
+          ],
+          [
+            26.44477413,
+            64.17076147
+          ],
+          [
+            26.44341551,
+            64.16991408
+          ]
+        ],
+        [
+          [
+            26.447824,
+            64.16898599
+          ],
+          [
+            26.44781806,
+            64.16908417
+          ],
+          [
+            26.44809902,
+            64.16909154
+          ],
+          [
+            26.44812025,
+            64.1689928
+          ],
+          [
+            26.447824,
+            64.16898599
+          ]
+        ]
+      ]
+    }
+}
+
+
+### TESTI 4: virheellinen pyyntö → odotetaan 400
+POST {{baseUrl}}/api/fields/check-aoi
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "geometry": { "type": "Point", "coordinates": [24.0, 64.2] } }

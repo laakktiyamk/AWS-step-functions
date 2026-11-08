@@ -6,25 +6,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getImage = void 0;
 const axios_1 = __importDefault(require("axios"));
 const bbox_1 = require("@turf/bbox");
-//import { calculateHeight, calculateWidth } from "../utils/calculateDim";
-const pixelDims_1 = require("../utils/pixelDims");
+const calculateDim_1 = require("../utils/calculateDim");
+//import { getDimsForResolution } from "../utils/pixelDims";
 const CDSE_PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process";
 function addOneDay(date) {
     const nextDate = new Date(date);
     nextDate.setDate(nextDate.getDate() + 1);
     return nextDate.toISOString();
 }
-/*
-async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight> {
-  const res = 512; //1024;
-  let width = res;
-  let height = await calculateHeight(geometry, width);
-  if (width < height) {
-    height = res;
-    width = await calculateWidth(geometry, height);
-  }
-  return { width, height };
-}*/
+async function getWidthAndHeight(geometry) {
+    const res = 512; //1024;
+    let width = res;
+    let height = await (0, calculateDim_1.calculateHeight)(geometry, width);
+    if (width < height) {
+        height = res;
+        width = await (0, calculateDim_1.calculateWidth)(geometry, height);
+    }
+    return { width, height };
+}
 const evalscript = `
 //VERSION=3
 function setup() {
@@ -47,9 +46,9 @@ function evaluatePixel(samples) {
 }
 `;
 const getImage = async (date, geometry, authToken) => {
-    const IMAGE_METERS_PER_PIXEL = 2; // vaihda 10:een, jos karkeampi kuva riittää
-    const { width, height } = (0, pixelDims_1.getDimsForResolution)(geometry, IMAGE_METERS_PER_PIXEL);
-    //const { width, height } = await getWidthAndHeight(geometry);
+    //const IMAGE_METERS_PER_PIXEL = 2; // vaihda 10:een, jos karkeampi kuva riittää
+    //const { width, height } = getDimsForResolution(geometry, IMAGE_METERS_PER_PIXEL);
+    const { width, height } = await getWidthAndHeight(geometry);
     const bbox = (0, bbox_1.bbox)(geometry);
     const requestBody = {
         input: {
@@ -66,6 +65,7 @@ const getImage = async (date, geometry, authToken) => {
                             to: new Date(addOneDay(date)).toISOString(),
                         },
                     },
+                    processing: { upsampling: "BICUBIC" },
                 }],
         },
         output: {

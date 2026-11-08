@@ -21,6 +21,9 @@ interface IUser extends Document {
 
   /** Public username displayed in the UI. */
   username: string;  
+  
+  /** True once the email address has been confirmed via the link. */
+  verified: boolean;
 }
 
 /**
@@ -34,7 +37,9 @@ interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  username: { type: String, required: true }
+  username: { type: String, required: true },  
+  verified: { type: Boolean, default: false }
+  
 });
 
 /**

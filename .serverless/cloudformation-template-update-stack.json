@@ -119,6 +119,12 @@
         "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-authLogin"
       }
     },
+    "AuthVerifyEmailLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-authVerifyEmail"
+      }
+    },
     "FieldsListLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
@@ -239,6 +245,12 @@
         "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-mlStarter"
       }
     },
+    "TestEmailLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/ndvi-pipeline-dev-testEmail"
+      }
+    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -314,6 +326,16 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "ses:SendEmail"
+                  ],
+                  "Resource": [
+                    "arn:aws:ses:eu-north-1:*:identity/*",
+                    "arn:aws:ses:eu-north-1:*:configuration-set/*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "execute-api:ManageConnections"
                   ],
                   "Resource": [
@@ -349,7 +371,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/distributor/handler.handler",
         "Runtime": "nodejs20.x",
@@ -362,6 +384,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "STEP_FUNCTION_ARN": {
               "Fn::Sub": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
             }
@@ -385,7 +410,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/websocket/handler.connect",
         "Runtime": "nodejs20.x",
@@ -397,7 +422,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -418,7 +446,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/notifier/handler.handler",
         "Runtime": "nodejs20.x",
@@ -431,6 +459,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "WS_ENDPOINT": "https://sqw05i0dc5.execute-api.eu-north-1.amazonaws.com/dev"
           }
         },
@@ -452,7 +483,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/ndviDates/handler.handler",
         "Runtime": "nodejs20.x",
@@ -465,6 +496,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "CDSE_CLIENT_ID": "sh-caaa7b99-466b-474f-ac16-9a13dae55804",
             "CDSE_CLIENT_SECRET": "xN8Wr16k5NH9T40p0UEGGkHzelRqwTpNl8msOkTLujxSkOGOUgIViSThQeSkUVsLFx3QoQOewW4heCAAK9gAli"
           }
@@ -487,7 +521,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/processor/handler.handler",
         "Runtime": "nodejs20.x",
@@ -500,6 +534,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "CDSE_CLIENT_ID": "sh-caaa7b99-466b-474f-ac16-9a13dae55804",
             "CDSE_CLIENT_SECRET": "xN8Wr16k5NH9T40p0UEGGkHzelRqwTpNl8msOkTLujxSkOGOUgIViSThQeSkUVsLFx3QoQOewW4heCAAK9gAli"
           }
@@ -522,7 +559,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/auth/handler.register",
         "Runtime": "nodejs20.x",
@@ -534,7 +571,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -555,7 +595,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/auth/handler.login",
         "Runtime": "nodejs20.x",
@@ -567,7 +607,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -581,6 +624,42 @@
         "AuthLoginLogGroup"
       ]
     },
+    "AuthVerifyEmailLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/auth/handler.verifyEmail",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-authVerifyEmail",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "AuthVerifyEmailLogGroup"
+      ]
+    },
     "FieldsListLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -588,7 +667,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.list",
         "Runtime": "nodejs20.x",
@@ -600,7 +679,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -621,7 +703,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.remove",
         "Runtime": "nodejs20.x",
@@ -633,7 +715,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -654,7 +739,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.cropTypes",
         "Runtime": "nodejs20.x",
@@ -666,7 +751,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -687,7 +775,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.byLocation",
         "Runtime": "nodejs20.x",
@@ -699,7 +787,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -720,7 +811,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.byBbox",
         "Runtime": "nodejs20.x",
@@ -732,7 +823,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -753,7 +847,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.cropParcels",
         "Runtime": "nodejs20.x",
@@ -765,7 +859,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -786,7 +883,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.cropParcelsGeom",
         "Runtime": "nodejs20.x",
@@ -798,7 +895,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -819,7 +919,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.checkAoi",
         "Runtime": "nodejs20.x",
@@ -831,7 +931,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -852,7 +955,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/fields/handler.info",
         "Runtime": "nodejs20.x",
@@ -864,7 +967,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -885,7 +991,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/municipalities/handler.list",
         "Runtime": "nodejs20.x",
@@ -897,7 +1003,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -918,7 +1027,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/municipalities/handler.byCode",
         "Runtime": "nodejs20.x",
@@ -930,7 +1039,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -951,7 +1063,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/jobs/handler.get",
         "Runtime": "nodejs20.x",
@@ -963,7 +1075,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -984,7 +1099,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/geocode/handler.search",
         "Runtime": "nodejs20.x",
@@ -996,7 +1111,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1017,7 +1135,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/growingSeason/handler.get",
         "Runtime": "nodejs20.x",
@@ -1029,7 +1147,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1050,7 +1171,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/validate/handler.validate",
         "Runtime": "nodejs20.x",
@@ -1062,7 +1183,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1083,7 +1207,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/ndvi/handler.dates",
         "Runtime": "nodejs20.x",
@@ -1096,6 +1220,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "CDSE_CLIENT_ID": "sh-caaa7b99-466b-474f-ac16-9a13dae55804",
             "CDSE_CLIENT_SECRET": "xN8Wr16k5NH9T40p0UEGGkHzelRqwTpNl8msOkTLujxSkOGOUgIViSThQeSkUVsLFx3QoQOewW4heCAAK9gAli"
           }
@@ -1118,7 +1245,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/ndvi/handler.getImage",
         "Runtime": "nodejs20.x",
@@ -1130,7 +1257,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1151,7 +1281,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/ndvi/handler.getImages",
         "Runtime": "nodejs20.x",
@@ -1163,7 +1293,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1184,7 +1317,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/weather/handler.getWeatherAll",
         "Runtime": "nodejs20.x",
@@ -1196,7 +1329,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1217,7 +1353,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/ndvi-pipeline/dev/1793835971231-2026-11-04T23:46:11.231Z/ndvi-pipeline.zip"
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
         },
         "Handler": "dist/functions/mlStarter/handler.handler",
         "Runtime": "nodejs20.x",
@@ -1230,6 +1366,9 @@
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
             "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online",
             "STEP_FUNCTION_ARN": {
               "Fn::Sub": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
             }
@@ -1246,274 +1385,330 @@
         "MlStarterLogGroup"
       ]
     },
-    "DistributorLambdaVersionxYYaHS0FKRiYFtmbj1cGf8DMG0LVSPTbLoBQ5hqM8": {
+    "TestEmailLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/ndvi-pipeline/dev/1794077401464-2026-11-07T18:50:01.464Z/ndvi-pipeline.zip"
+        },
+        "Handler": "dist/functions/email/handler.handler",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "ndvi-pipeline-dev-testEmail",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Environment": {
+          "Variables": {
+            "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
+            "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+            "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "TestEmailLogGroup"
+      ]
+    },
+    "DistributorLambdaVersion0TLIDYPYrEYyNfQns85jijD9JT7UqiMdUxz0uLE9g": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DistributorLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "WsConnectLambdaVersionpygFzoMFtlOc5lzfPWXOk2IrdUNUvtT5YFtkPdeo6b0": {
+    "WsConnectLambdaVersionTlyrUxV29E6pWlzpVrnqBXMedmcyBR4NX02puuPZDmc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WsConnectLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "NotifierLambdaVersionnMaeddXbNByOVIxCZjBF1Evk1TJIPKfoGREE9uXm1Q": {
+    "NotifierLambdaVersionWdBZDJLIPamOuc9y6NDwgLVGuhWMVpR6UxJPR8tabE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NotifierLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "NdviDatesLambdaVersionLk8pzWjYqBJmDj2iiP2dltoI2BLrT67K11q80sOLmA": {
+    "NdviDatesLambdaVersion7CNImFl6yqvFJ2IAKehmpnekvpqZ8ujub7ejQN3Bcg": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NdviDatesLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "ImageProcessorLambdaVersion6DP5ca3EbWjDpRL1bKNF5wyekw0zFsEvNp0BKYTo0A": {
+    "ImageProcessorLambdaVersionCHk3LJUvQWQA31iyMlbObJ6Eo2QU2TksPbYEq8U0Khg": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ImageProcessorLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "AuthRegisterLambdaVersionpfBXX0XtBT51dNymWz1WYmXSeNZKejLv2AnT58jtA": {
+    "AuthRegisterLambdaVersionagbLJZpglx2DLTB2nbQutdjlg1arcUby3En6YDGKI": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AuthRegisterLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "AuthLoginLambdaVersionNHoUwUejGfapIPmfoWo11yCYszZOeYsvpWTDCt7Y4g": {
+    "AuthLoginLambdaVersionLbn0f1eHLbdS6xWdTpYqXxAFVtK9DS9qksNQhP78gRU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AuthLoginLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsListLambdaVersionErol5UUdmBh9fPquyLgBKHYaXeuVGvyZVt4xNAJj4rs": {
+    "AuthVerifyEmailLambdaVersionB3rPNWrLClm7RxbVv8vHJtT7JpiIliKcjEl635nKQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "AuthVerifyEmailLambdaFunction"
+        },
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
+      }
+    },
+    "FieldsListLambdaVersionws5KNEmTIF55BaTjxiRdaAdVNppni2eQe45xCGVE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsListLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsDeleteLambdaVersiond21E5kKivTDIrgIlFsCRIcUEDGnGFcs5REPkxue4Uc": {
+    "FieldsDeleteLambdaVersion6gaO4d1USqt25XkNZyFhSzPXX0c0xr68gYfIVSw6Y0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsDeleteLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsCropTypesLambdaVersionXhTlRg7CejdX4AIxaICXSXWjJGS0zLVhbOqIRvjWE": {
+    "FieldsCropTypesLambdaVersionO9LhEBjodb5mvohGs1ozr6Crh0M9Ph8Jo32aw2vY4": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsCropTypesLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsByLocationLambdaVersionJmcg0yuYw4Pxf3tdgczNZxwtA8OVaennuOfEQRBAA": {
+    "FieldsByLocationLambdaVersionn4U8AxToIvDx9VsIgXvEafAHysLvbY55nATsYJILM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsByLocationLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsByBboxLambdaVersion6DsjnoZJe3lBXxq2jMQLZ7ckSYhVB8AAXhH3ySSon0": {
+    "FieldsByBboxLambdaVersionLkfRAMnhFYr0PUxtOoI95zt7DgaLyZrBoVah7mKFY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsByBboxLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsCropParcelsLambdaVersionjNbQ2EGdZytDcqOjpThWkzYbfzGtDSv7SndpO3gm8E": {
+    "FieldsCropParcelsLambdaVersionmGXxLfoCp4qMdWpblTRD16USmkHHmm2dohsAn0Z23A": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsCropParcelsLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsCropParcelsGeomLambdaVersion2NAyx3T47lwl0GAdgTU5GElm3b8m65bFm1Jz4XGNE": {
+    "FieldsCropParcelsGeomLambdaVersionR82XzOJwWTra6XpvyXJG8qSJaqzUiurkGaC5TgTGk": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsCropParcelsGeomLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsCheckAoiLambdaVersionmKFg79rFFkMJfUaPjul8lY5rin4ksQkdKQUY3l1HAlk": {
+    "FieldsCheckAoiLambdaVersionnZZJl1reiNpt6QYXHTwstqpik8l4arRf13ewYUnz7Hs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsCheckAoiLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "FieldsInfoLambdaVersionPXr3PdohvRxKyjMX9fe5YLG54VSCKenSR22bVQwvI": {
+    "FieldsInfoLambdaVersion16dtPUr9JW2CdJ9d4iiumoJGsmdjhPbBy1biGHKSg": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "FieldsInfoLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "MunicipalitiesListLambdaVersionOAxqXSS0Xt1Jhf0YDcc64qbCwb2VW9dQ3h5NlRJo": {
+    "MunicipalitiesListLambdaVersion9LB9Mjvk9yDyRBVV9q8Hs4E0VpzLjRo3emgoMkNRmY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MunicipalitiesListLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "MunicipalityByCodeLambdaVersion2x6RPzINkmG4bD1tonBP1TPQ7AbbJFsOw1NHmiks": {
+    "MunicipalityByCodeLambdaVersionJFFIZv9y1DrgnIsNeyTmB5qEayOahSDWvRsnE7o": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MunicipalityByCodeLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "JobGetLambdaVersionhxTwJ0PFntnSMrfLMQPgM2B25XcTNfp6zuTgeV1AMKA": {
+    "JobGetLambdaVersion2zueDiqk16Rs66z9w64NnWB0ZqZrrVoFAmFwGs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "JobGetLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "GeocodeLambdaVersionVGt3YteT9D1hcdBkAvDotTAsXOoaJTOX9Of3LIVdco0": {
+    "GeocodeLambdaVersionhg1W6byzg9uikvPzuWh79XF6IGg9dOMhSs8JHtk5uNA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GeocodeLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "GrowingSeasonLambdaVersionkMFhiDqCielLeFPO9mPqnB1EhcXINSzeutjRUPOX4": {
+    "GrowingSeasonLambdaVersionLZn91obKtvhBZv5pA2LnAdjglxQWUp23jRjFWfFOW4": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GrowingSeasonLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "ValidateGeoJsonLambdaVersionLQvjcew6OlD1HC27bZcsgs132xryOKw577Rd1wNH5s": {
+    "ValidateGeoJsonLambdaVersionIuwn3rBHNfVgAI1vi11CoY8ZAsJx1pulAvnk9ucitc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ValidateGeoJsonLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "NdviDatesApiLambdaVersionuHfxnJQousUxVVPNXU1arkgGE9JfcvTAa2yGo6z6U": {
+    "NdviDatesApiLambdaVersioneD9Kk5EOrGDNkQKJt4Vko6FwuL8MlHvWoasdKoqjcyU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NdviDatesApiLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "NdviImageLambdaVersionma5KI0FWL5MiAtfpqVcSTvSlhve6y1bhWLdX7OtPc": {
+    "NdviImageLambdaVersione0WQ4wyBCfYFT6SVGnjYG4UPHzWEmhvhXTAf0MAHTM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NdviImageLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "NdviImagesLambdaVersion1NE0G7JC25DexwDR4ZYSGWXEcjAhHSa5o3A8M4HPPUI": {
+    "NdviImagesLambdaVersionudCphv8NgAZkVOk0DTYnPCVblgWQ45BqFIGIWdy7A": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "NdviImagesLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "WeatherAllLambdaVersionma1Wkb71xo9aMHjFZjFiVe3hcZlLYZ1jDk8RlraoMY": {
+    "WeatherAllLambdaVersionE3kC77Ebws8EzlgsUhkqPccc0f32EFJNS4PF4VsLg": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "WeatherAllLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
-    "MlStarterLambdaVersionr2pZV2aJVRgZro9ny8sE8QOFlM6wGO9xWGiZ2AEfJ1Q": {
+    "MlStarterLambdaVersionSZQvvAsPHnLayVACp37DfRCo8npgW8CzhmsTcEkQTs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "MlStarterLambdaFunction"
         },
-        "CodeSha256": "DjSZyxX9T4C5i1ODHbxS8A9XgAcPq7lu/6GZ0zKi0zw="
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
+      }
+    },
+    "TestEmailLambdaVersion1qLfvjoc1JCaPs7diXKqRnHJL6MzB4ydWoHcGBvuLo": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "TestEmailLambdaFunction"
+        },
+        "CodeSha256": "NuUK3fWNyP0/pKrMHepx3MRpc9MHMNEsyR6PqedgANQ="
       }
     },
     "ClassifierLambdaFunction": {
@@ -1531,7 +1726,10 @@
             "MONGO_URI": "mongodb+srv://laakktiyamk:3MzaYW6uc1lwLaRS@ndvi.tz1a6p3.mongodb.net/NDVI2?appName=NDVI",
             "MONGO_AZURE_URI": "mongodb+srv://dbuser9zgdvx:Rytky2026@docdb-cluster-20260823-2325.global.mongocluster.cosmos.azure.com/AOI?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
             "SECRET": "520933kl2klsdfvklsdmfrwR52452p948u",
-            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43"
+            "MML_API_KEY": "8d9b5c46-0f37-49df-8f75-9e50f9771c43",
+            "SES_FROM": "noreply@ndvimonitor.online",
+            "SES_REGION": "eu-north-1",
+            "APP_URL": "https://www.ndvimonitor.online"
           }
         },
         "Role": {
@@ -1545,7 +1743,7 @@
         "ClassifierLogGroup"
       ]
     },
-    "ClassifierLambdaVersiont31VKce2UpgNjG6Z2W1Foh2HQzoLF9rzLV1O9injqw": {
+    "ClassifierLambdaVersionPZjaNtgNUlAg2D5FTy3XmqU5XnBjeafPNQ0g14azA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
@@ -2081,6 +2279,81 @@
         }
       },
       "DependsOn": "HttpApiIntegrationAuthLogin"
+    },
+    "AuthVerifyEmailLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AuthVerifyEmailLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationAuthVerifyEmail": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "AuthVerifyEmailLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRoutePostApiUserVerifyDashemail": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /api/user/verify-email",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationAuthVerifyEmail"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationAuthVerifyEmail"
     },
     "FieldsListLambdaPermissionHttpApi": {
       "Type": "AWS::Lambda::Permission",
@@ -3506,6 +3779,81 @@
         }
       },
       "DependsOn": "HttpApiIntegrationWeatherAll"
+    },
+    "TestEmailLambdaPermissionHttpApi": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TestEmailLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApi"
+              },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
+    "HttpApiIntegrationTestEmail": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "TestEmailLambdaFunction",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0",
+        "TimeoutInMillis": 30000
+      }
+    },
+    "HttpApiRouteGetDevTestDashemail": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "GET /dev/test-email",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationTestEmail"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationTestEmail"
     }
   },
   "Outputs": {
@@ -3520,7 +3868,7 @@
     "DistributorLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DistributorLambdaVersionxYYaHS0FKRiYFtmbj1cGf8DMG0LVSPTbLoBQ5hqM8"
+        "Ref": "DistributorLambdaVersion0TLIDYPYrEYyNfQns85jijD9JT7UqiMdUxz0uLE9g"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-DistributorLambdaFunctionQualifiedArn"
@@ -3529,7 +3877,7 @@
     "WsConnectLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WsConnectLambdaVersionpygFzoMFtlOc5lzfPWXOk2IrdUNUvtT5YFtkPdeo6b0"
+        "Ref": "WsConnectLambdaVersionTlyrUxV29E6pWlzpVrnqBXMedmcyBR4NX02puuPZDmc"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-WsConnectLambdaFunctionQualifiedArn"
@@ -3538,7 +3886,7 @@
     "NotifierLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NotifierLambdaVersionnMaeddXbNByOVIxCZjBF1Evk1TJIPKfoGREE9uXm1Q"
+        "Ref": "NotifierLambdaVersionWdBZDJLIPamOuc9y6NDwgLVGuhWMVpR6UxJPR8tabE"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NotifierLambdaFunctionQualifiedArn"
@@ -3547,7 +3895,7 @@
     "NdviDatesLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NdviDatesLambdaVersionLk8pzWjYqBJmDj2iiP2dltoI2BLrT67K11q80sOLmA"
+        "Ref": "NdviDatesLambdaVersion7CNImFl6yqvFJ2IAKehmpnekvpqZ8ujub7ejQN3Bcg"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NdviDatesLambdaFunctionQualifiedArn"
@@ -3556,7 +3904,7 @@
     "ImageProcessorLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ImageProcessorLambdaVersion6DP5ca3EbWjDpRL1bKNF5wyekw0zFsEvNp0BKYTo0A"
+        "Ref": "ImageProcessorLambdaVersionCHk3LJUvQWQA31iyMlbObJ6Eo2QU2TksPbYEq8U0Khg"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-ImageProcessorLambdaFunctionQualifiedArn"
@@ -3565,7 +3913,7 @@
     "AuthRegisterLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AuthRegisterLambdaVersionpfBXX0XtBT51dNymWz1WYmXSeNZKejLv2AnT58jtA"
+        "Ref": "AuthRegisterLambdaVersionagbLJZpglx2DLTB2nbQutdjlg1arcUby3En6YDGKI"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-AuthRegisterLambdaFunctionQualifiedArn"
@@ -3574,16 +3922,25 @@
     "AuthLoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AuthLoginLambdaVersionNHoUwUejGfapIPmfoWo11yCYszZOeYsvpWTDCt7Y4g"
+        "Ref": "AuthLoginLambdaVersionLbn0f1eHLbdS6xWdTpYqXxAFVtK9DS9qksNQhP78gRU"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-AuthLoginLambdaFunctionQualifiedArn"
       }
     },
+    "AuthVerifyEmailLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "AuthVerifyEmailLambdaVersionB3rPNWrLClm7RxbVv8vHJtT7JpiIliKcjEl635nKQ"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-AuthVerifyEmailLambdaFunctionQualifiedArn"
+      }
+    },
     "FieldsListLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsListLambdaVersionErol5UUdmBh9fPquyLgBKHYaXeuVGvyZVt4xNAJj4rs"
+        "Ref": "FieldsListLambdaVersionws5KNEmTIF55BaTjxiRdaAdVNppni2eQe45xCGVE"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsListLambdaFunctionQualifiedArn"
@@ -3592,7 +3949,7 @@
     "FieldsDeleteLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsDeleteLambdaVersiond21E5kKivTDIrgIlFsCRIcUEDGnGFcs5REPkxue4Uc"
+        "Ref": "FieldsDeleteLambdaVersion6gaO4d1USqt25XkNZyFhSzPXX0c0xr68gYfIVSw6Y0"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsDeleteLambdaFunctionQualifiedArn"
@@ -3601,7 +3958,7 @@
     "FieldsCropTypesLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsCropTypesLambdaVersionXhTlRg7CejdX4AIxaICXSXWjJGS0zLVhbOqIRvjWE"
+        "Ref": "FieldsCropTypesLambdaVersionO9LhEBjodb5mvohGs1ozr6Crh0M9Ph8Jo32aw2vY4"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsCropTypesLambdaFunctionQualifiedArn"
@@ -3610,7 +3967,7 @@
     "FieldsByLocationLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsByLocationLambdaVersionJmcg0yuYw4Pxf3tdgczNZxwtA8OVaennuOfEQRBAA"
+        "Ref": "FieldsByLocationLambdaVersionn4U8AxToIvDx9VsIgXvEafAHysLvbY55nATsYJILM"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsByLocationLambdaFunctionQualifiedArn"
@@ -3619,7 +3976,7 @@
     "FieldsByBboxLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsByBboxLambdaVersion6DsjnoZJe3lBXxq2jMQLZ7ckSYhVB8AAXhH3ySSon0"
+        "Ref": "FieldsByBboxLambdaVersionLkfRAMnhFYr0PUxtOoI95zt7DgaLyZrBoVah7mKFY"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsByBboxLambdaFunctionQualifiedArn"
@@ -3628,7 +3985,7 @@
     "FieldsCropParcelsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsCropParcelsLambdaVersionjNbQ2EGdZytDcqOjpThWkzYbfzGtDSv7SndpO3gm8E"
+        "Ref": "FieldsCropParcelsLambdaVersionmGXxLfoCp4qMdWpblTRD16USmkHHmm2dohsAn0Z23A"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsLambdaFunctionQualifiedArn"
@@ -3637,7 +3994,7 @@
     "FieldsCropParcelsGeomLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsCropParcelsGeomLambdaVersion2NAyx3T47lwl0GAdgTU5GElm3b8m65bFm1Jz4XGNE"
+        "Ref": "FieldsCropParcelsGeomLambdaVersionR82XzOJwWTra6XpvyXJG8qSJaqzUiurkGaC5TgTGk"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsCropParcelsGeomLambdaFunctionQualifiedArn"
@@ -3646,7 +4003,7 @@
     "FieldsCheckAoiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsCheckAoiLambdaVersionmKFg79rFFkMJfUaPjul8lY5rin4ksQkdKQUY3l1HAlk"
+        "Ref": "FieldsCheckAoiLambdaVersionnZZJl1reiNpt6QYXHTwstqpik8l4arRf13ewYUnz7Hs"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsCheckAoiLambdaFunctionQualifiedArn"
@@ -3655,7 +4012,7 @@
     "FieldsInfoLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "FieldsInfoLambdaVersionPXr3PdohvRxKyjMX9fe5YLG54VSCKenSR22bVQwvI"
+        "Ref": "FieldsInfoLambdaVersion16dtPUr9JW2CdJ9d4iiumoJGsmdjhPbBy1biGHKSg"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-FieldsInfoLambdaFunctionQualifiedArn"
@@ -3664,7 +4021,7 @@
     "MunicipalitiesListLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MunicipalitiesListLambdaVersionOAxqXSS0Xt1Jhf0YDcc64qbCwb2VW9dQ3h5NlRJo"
+        "Ref": "MunicipalitiesListLambdaVersion9LB9Mjvk9yDyRBVV9q8Hs4E0VpzLjRo3emgoMkNRmY"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-MunicipalitiesListLambdaFunctionQualifiedArn"
@@ -3673,7 +4030,7 @@
     "MunicipalityByCodeLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MunicipalityByCodeLambdaVersion2x6RPzINkmG4bD1tonBP1TPQ7AbbJFsOw1NHmiks"
+        "Ref": "MunicipalityByCodeLambdaVersionJFFIZv9y1DrgnIsNeyTmB5qEayOahSDWvRsnE7o"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-MunicipalityByCodeLambdaFunctionQualifiedArn"
@@ -3682,7 +4039,7 @@
     "JobGetLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "JobGetLambdaVersionhxTwJ0PFntnSMrfLMQPgM2B25XcTNfp6zuTgeV1AMKA"
+        "Ref": "JobGetLambdaVersion2zueDiqk16Rs66z9w64NnWB0ZqZrrVoFAmFwGs"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-JobGetLambdaFunctionQualifiedArn"
@@ -3691,7 +4048,7 @@
     "GeocodeLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GeocodeLambdaVersionVGt3YteT9D1hcdBkAvDotTAsXOoaJTOX9Of3LIVdco0"
+        "Ref": "GeocodeLambdaVersionhg1W6byzg9uikvPzuWh79XF6IGg9dOMhSs8JHtk5uNA"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-GeocodeLambdaFunctionQualifiedArn"
@@ -3700,7 +4057,7 @@
     "GrowingSeasonLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GrowingSeasonLambdaVersionkMFhiDqCielLeFPO9mPqnB1EhcXINSzeutjRUPOX4"
+        "Ref": "GrowingSeasonLambdaVersionLZn91obKtvhBZv5pA2LnAdjglxQWUp23jRjFWfFOW4"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-GrowingSeasonLambdaFunctionQualifiedArn"
@@ -3709,7 +4066,7 @@
     "ValidateGeoJsonLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ValidateGeoJsonLambdaVersionLQvjcew6OlD1HC27bZcsgs132xryOKw577Rd1wNH5s"
+        "Ref": "ValidateGeoJsonLambdaVersionIuwn3rBHNfVgAI1vi11CoY8ZAsJx1pulAvnk9ucitc"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-ValidateGeoJsonLambdaFunctionQualifiedArn"
@@ -3718,7 +4075,7 @@
     "NdviDatesApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NdviDatesApiLambdaVersionuHfxnJQousUxVVPNXU1arkgGE9JfcvTAa2yGo6z6U"
+        "Ref": "NdviDatesApiLambdaVersioneD9Kk5EOrGDNkQKJt4Vko6FwuL8MlHvWoasdKoqjcyU"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NdviDatesApiLambdaFunctionQualifiedArn"
@@ -3727,7 +4084,7 @@
     "NdviImageLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NdviImageLambdaVersionma5KI0FWL5MiAtfpqVcSTvSlhve6y1bhWLdX7OtPc"
+        "Ref": "NdviImageLambdaVersione0WQ4wyBCfYFT6SVGnjYG4UPHzWEmhvhXTAf0MAHTM"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NdviImageLambdaFunctionQualifiedArn"
@@ -3736,7 +4093,7 @@
     "NdviImagesLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "NdviImagesLambdaVersion1NE0G7JC25DexwDR4ZYSGWXEcjAhHSa5o3A8M4HPPUI"
+        "Ref": "NdviImagesLambdaVersionudCphv8NgAZkVOk0DTYnPCVblgWQ45BqFIGIWdy7A"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-NdviImagesLambdaFunctionQualifiedArn"
@@ -3745,7 +4102,7 @@
     "WeatherAllLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "WeatherAllLambdaVersionma1Wkb71xo9aMHjFZjFiVe3hcZlLYZ1jDk8RlraoMY"
+        "Ref": "WeatherAllLambdaVersionE3kC77Ebws8EzlgsUhkqPccc0f32EFJNS4PF4VsLg"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-WeatherAllLambdaFunctionQualifiedArn"
@@ -3754,16 +4111,25 @@
     "MlStarterLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "MlStarterLambdaVersionr2pZV2aJVRgZro9ny8sE8QOFlM6wGO9xWGiZ2AEfJ1Q"
+        "Ref": "MlStarterLambdaVersionSZQvvAsPHnLayVACp37DfRCo8npgW8CzhmsTcEkQTs"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-MlStarterLambdaFunctionQualifiedArn"
       }
     },
+    "TestEmailLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "TestEmailLambdaVersion1qLfvjoc1JCaPs7diXKqRnHJL6MzB4ydWoHcGBvuLo"
+      },
+      "Export": {
+        "Name": "sls-ndvi-pipeline-dev-TestEmailLambdaFunctionQualifiedArn"
+      }
+    },
     "ClassifierLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ClassifierLambdaVersiont31VKce2UpgNjG6Z2W1Foh2HQzoLF9rzLV1O9injqw"
+        "Ref": "ClassifierLambdaVersionPZjaNtgNUlAg2D5FTy3XmqU5XnBjeafPNQ0g14azA"
       },
       "Export": {
         "Name": "sls-ndvi-pipeline-dev-ClassifierLambdaFunctionQualifiedArn"

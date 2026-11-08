@@ -1,8 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginUser = exports.registerUser = void 0;
+exports.verifyEmailUser = exports.loginUser = exports.registerUser = void 0;
 const express_validator_1 = require("express-validator");
 const userAuthService_1 = require("../services/userAuthService");
+const tokenService_1 = require("../services/tokenService");
+const emailService_1 = require("../services/emailService");
+const emailTemplates_1 = require("../services/emailTemplates");
+const tokenService_2 = require("../services/tokenService");
+const User_1 = require("../mongo/models/User");
 /* =======================================================
    REGISTER USER
    ------------------------------------------------------- */
@@ -36,8 +41,18 @@ const registerUser = async (req, res) => {
             return res.status(403).json({ message: "Email already in use" });
         }
         const newUser = await (0, userAuthService_1.registerUserInDb)(email, password, username);
+        // Vahvistuslinkki sähköpostiin. Viestin epäonnistuminen ei kaada rekisteröintiä.
+        try {
+            const token = await (0, tokenService_1.createEmailToken)(newUser._id, "verify_email");
+            const link = `${process.env.APP_URL}/verify-email?token=${token}`;
+            const t = (0, emailTemplates_1.getTemplates)((0, emailTemplates_1.resolveLang)(req.body.lang));
+            await (0, emailService_1.sendEmail)(newUser.email, t.verifySubject, t.verifyBody(newUser.username, link, 60));
+        }
+        catch (mailErr) {
+            console.error("Verification email error:", mailErr);
+        }
         return res.status(201).json({
-            message: "User registered successfully",
+            message: "User registered. Check your email to verify your account.",
             user: {
                 id: newUser._id,
                 email: newUser.email,
@@ -89,6 +104,12 @@ const loginUser = async (req, res) => {
         if (!match) {
             return res.status(401).json({ message: "Incorrect password" });
         }
+        if (!user.verified) {
+            return res.status(403).json({
+                code: "EMAIL_NOT_VERIFIED",
+                message: "Email address not verified"
+            });
+        }
         const token = (0, userAuthService_1.createJwtToken)(user);
         return res.status(200).json({
             token,
@@ -105,3 +126,22 @@ const loginUser = async (req, res) => {
     }
 };
 exports.loginUser = loginUser;
+const verifyEmailUser = async (req, res) => {
+    const { token } = req.body;
+    if (typeof token !== "string" || token.length !== 64) {
+        return res.status(400).json({ message: "Invalid or expired link" });
+    }
+    try {
+        const userId = await (0, tokenService_2.consumeEmailToken)(token, "verify_email");
+        if (!userId) {
+            return res.status(400).json({ message: "Invalid or expired link" });
+        }
+        await User_1.User.updateOne({ _id: userId }, { $set: { verified: true } });
+        return res.status(200).json({ ok: true });
+    }
+    catch (err) {
+        console.error("Verify email error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+exports.verifyEmailUser = verifyEmailUser;

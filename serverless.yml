@@ -36,6 +36,13 @@ provider:
           Action:
             - execute-api:ManageConnections
           Resource: "arn:aws:execute-api:*:*:*/@connections/*"
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource:
+            - arn:aws:ses:eu-north-1:*:identity/*
+            - arn:aws:ses:eu-north-1:*:configuration-set/*
+
   ecr:
     images:
       # processor-image poistettu: processor on nyt Node.js-funktio
@@ -48,6 +55,9 @@ provider:
     MONGO_AZURE_URI: ${env:MONGO_AZURE_URI}
     SECRET: ${env:SECRET}
     MML_API_KEY: ${env:MML_API_KEY}
+    SES_FROM: ${env:SES_FROM}
+    SES_REGION: eu-north-1
+    APP_URL: https://www.ndvimonitor.online
 
 plugins:
   - serverless-step-functions
@@ -90,8 +100,7 @@ functions:
     environment:
       CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
       CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
-
-  # 
+   
   imageProcessor:
     handler: dist/functions/processor/handler.handler
     runtime: nodejs20.x
@@ -125,6 +134,16 @@ functions:
     events:
       - httpApi:
           path: /api/user/login
+          method: post
+
+  authVerifyEmail:
+    handler: dist/functions/auth/handler.verifyEmail
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/verify-email
           method: post
 
   fieldsList:
@@ -325,6 +344,16 @@ functions:
     timeout: 60
     environment:
       STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
+
+  testEmail:
+    handler: dist/functions/email/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          method: GET
+          path: /dev/test-email    
 
 stepFunctions:
   stateMachines:

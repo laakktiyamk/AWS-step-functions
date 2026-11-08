@@ -7,6 +7,13 @@ import {
   createJwtToken
 } from "../services/userAuthService";
 
+import { createEmailToken } from "../services/tokenService";
+import { sendEmail } from "../services/emailService";
+import { getTemplates, resolveLang } from "../services/emailTemplates";
+
+import { consumeEmailToken } from "../services/tokenService";
+import { User } from "../mongo/models/User";
+
 /* =======================================================
    REGISTER USER
    ------------------------------------------------------- */
@@ -29,8 +36,8 @@ import {
  * @returns A JSON response with the new user or an error message.
  */
 export const registerUser = async (req: Request, res: Response) => {
-  const errors = validationResult(req);  
-  if (!errors.isEmpty()) {    
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
@@ -44,8 +51,22 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const newUser = await registerUserInDb(email, password, username);
 
+    // Vahvistuslinkki sähköpostiin. Viestin epäonnistuminen ei kaada rekisteröintiä.
+    try {
+      const token = await createEmailToken(newUser._id, "verify_email");
+      const link = `${process.env.APP_URL}/verify-email?token=${token}`;
+      const t = getTemplates(resolveLang(req.body.lang));
+      await sendEmail(
+        newUser.email,
+        t.verifySubject,
+        t.verifyBody(newUser.username, link, 60)
+      );
+    } catch (mailErr) {
+      console.error("Verification email error:", mailErr);
+    }
+
     return res.status(201).json({
-      message: "User registered successfully",
+      message: "User registered. Check your email to verify your account.",
       user: {
         id: newUser._id,
         email: newUser.email,
@@ -101,6 +122,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Incorrect password" });
     }
 
+    if (!user.verified) {
+      return res.status(403).json({
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Email address not verified"
+      });
+    }
+
     const token = createJwtToken(user);
 
     return res.status(200).json({
@@ -108,12 +136,34 @@ export const loginUser = async (req: Request, res: Response) => {
       user: {
         id: user._id,
         email: user.email,
-        username: user.username        
+        username: user.username
       }
     });
 
   } catch (err) {
     console.error("Login error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const verifyEmailUser = async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  if (typeof token !== "string" || token.length !== 64) {
+    return res.status(400).json({ message: "Invalid or expired link" });
+  }
+
+  try {
+    const userId = await consumeEmailToken(token, "verify_email");
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid or expired link" });
+    }
+
+    await User.updateOne({ _id: userId }, { $set: { verified: true } });
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("Verify email error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };

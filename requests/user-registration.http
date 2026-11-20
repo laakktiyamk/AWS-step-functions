@@ -147,12 +147,35 @@ Authorization: Bearer {{authToken}}
   "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
 }
 
+### 11) Create a job with a field that has no data yet
+POST {{baseUrl}}/process
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "start_date": "2026-04-01",
+  "fields": [
+    {
+      "name": "esto-testi",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [25.6600, 60.9800],
+          [25.6615, 60.9800],
+          [25.6615, 60.9809],
+          [25.6600, 60.9809],
+          [25.6600, 60.9800]
+        ]]
+      }
+    }
+  ]
+}
 
 
 ### NDVI dates (käyttäjän omalla CDSE-tokenilla)
 POST {{baseUrl}}/api/ndvi/dates
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{authToken}}
 
 {
   "name": "CDSE-testi",

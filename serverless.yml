@@ -103,18 +103,18 @@ functions:
     runtime: nodejs20.x
     memorySize: 512
     timeout: 120   # syncDates + sää usealta kasvukaudelta
-    environment:
-      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+    # environment:
+    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
    
   imageProcessor:
     handler: dist/functions/processor/handler.handler
     runtime: nodejs20.x
     memorySize: 1024
     timeout: 60
-    environment:
-      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+    #environment:
+    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
 
   classifier:
     image:
@@ -357,9 +357,9 @@ functions:
     runtime: nodejs20.x
     memorySize: 1024
     timeout: 120
-    environment:
-      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+    # environment:
+    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
     events:
       - httpApi:
           path: /api/ndvi/dates
@@ -462,6 +462,7 @@ stepFunctions:
                   ItemSelector:
                     item.$: $$.Map.Item.Value
                     geometry.$: $.geometry
+                    userId.$: $.userId
                   ResultPath: null   # processorien tulokset pois (payload-raja 256 KB)
                   Iterator:
                     StartAt: processor

@@ -1,8 +1,10 @@
 import { authenticate } from '../shared/utils/authenticate_CDSE'
+import { getCdseTokenForUser, CdseNotConnectedError } from '../shared/services/cdseTokenService'
 import { connectDb } from '../shared/mongo/db'
 import { ensureParcelConnected } from '../shared/mongo/connections'
 import { mlWeatherStore } from '../shared/mongo/models/MlWeather'
 import { syncDates, syncMlDates, fetchWeather } from '../shared/services/ndviService'
+
 
 export const handler = async (event: any) => {
   
@@ -10,9 +12,6 @@ export const handler = async (event: any) => {
   //if (event.name === "FAIL") throw new Error("testivirhe");
 
   await connectDb()
-  const authToken = await authenticate()
-
-  console.log('authenticated')
 
   const geometry = typeof event.geometry !== 'object'
     ? JSON.parse(event.geometry)
@@ -20,6 +19,7 @@ export const handler = async (event: any) => {
 
   // ── ML-ajo: tallennus ML_data- ja ML_weather-kokoelmiin, ei kuvia ──
   if (event.target === 'ml') {
+    const authToken = await authenticate()
     console.log('ML: start', event.field_id)
     await ensureParcelConnected()
     console.log('ML: parcel connected')
@@ -52,6 +52,8 @@ export const handler = async (event: any) => {
   }
 
   // ── Normaali käyttäjän ajo (ennallaan) ──
+  if (!event.userId) throw new CdseNotConnectedError()
+    const authToken = await getCdseTokenForUser(event.userId)
     const result = await syncDates(
     geometry,
     new Date(event.start_date),
@@ -64,7 +66,7 @@ export const handler = async (event: any) => {
   )
 
   if (!result) {
-    return { geometry, field_id: event.field_id, jobId: event.jobId, aoiId: event.aoiId, items: [] }
+    return { geometry, field_id: event.field_id, jobId: event.jobId, aoiId: event.aoiId, userId: event.userId, items: [] }
   }
 
   await fetchWeather(result.geometry, result.seasons)
@@ -74,6 +76,7 @@ export const handler = async (event: any) => {
     field_id: event.field_id,
     jobId: event.jobId,
     aoiId: event.aoiId,
+    userId: event.userId,
     items: result.newDates
   }
 }

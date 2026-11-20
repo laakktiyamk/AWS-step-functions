@@ -1,0 +1,558 @@
+service: ndvi-pipeline
+frameworkVersion: '3.*'
+useDotenv: true
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: eu-north-1
+  stage: dev
+  profile: AWS-step-functions
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:5173
+        - https://d22ng9fbvq00j3.cloudfront.net
+        - https://www.ndvimonitor.online
+        - https://ndvimonitor.online
+      allowedHeaders:
+        - Content-Type
+        - Authorization      
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      maxAge: 600
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: "arn:aws:execute-api:*:*:*/@connections/*"
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource:
+            - arn:aws:ses:eu-north-1:*:identity/*
+            - arn:aws:ses:eu-north-1:*:configuration-set/*
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource: arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/ndvi/cdse-encryption-key    
+
+  ecr:
+    images:
+      # processor-image poistettu: processor on nyt Node.js-funktio
+      classifier-image:
+        path: .
+        file: Dockerfile.classifier
+        platform: linux/amd64
+  environment:
+    MONGO_URI: ${env:MONGO_URI}
+    MONGO_AZURE_URI: ${env:MONGO_AZURE_URI}
+    SECRET: ${env:SECRET}
+    MML_API_KEY: ${env:MML_API_KEY}
+    SES_FROM: ${env:SES_FROM}
+    SES_REGION: eu-north-1
+    APP_URL: https://www.ndvimonitor.online
+
+plugins:
+  - serverless-step-functions
+  - serverless-python-requirements
+
+functions:
+  distributor:
+    handler: dist/functions/distributor/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    environment:
+      STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
+    events:
+      - httpApi:
+          path: /process
+          method: post
+
+  wsConnect:
+    handler: dist/functions/websocket/handler.connect
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - websocket:
+          route: $connect
+  notifier:
+    handler: dist/functions/notifier/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    environment:
+      WS_ENDPOINT: https://sqw05i0dc5.execute-api.eu-north-1.amazonaws.com/dev
+
+  ndviDates:
+    handler: dist/functions/ndviDates/handler.handler
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 120   # syncDates + sää usealta kasvukaudelta
+    environment:
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+   
+  imageProcessor:
+    handler: dist/functions/processor/handler.handler
+    runtime: nodejs20.x
+    memorySize: 1024
+    timeout: 60
+    environment:
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+
+  classifier:
+    image:
+      name: classifier-image
+    timeout: 120
+    memorySize: 3008
+
+  authRegister:
+    handler: dist/functions/auth/handler.register
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/register
+          method: post
+
+  authLogin:
+    handler: dist/functions/auth/handler.login
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/login
+          method: post
+
+  authVerifyEmail:
+    handler: dist/functions/auth/handler.verifyEmail
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/verify-email
+          method: post
+
+  authUpdateCdse:
+    handler: dist/functions/auth/handler.updateCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: put
+
+  authDeleteCdse:
+    handler: dist/functions/auth/handler.deleteCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: delete
+
+  authGetCdse:
+    handler: dist/functions/auth/handler.getCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: get
+
+  authForgotPassword:
+    handler: dist/functions/auth/handler.forgotPasswordRequest
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/user/forgot-password
+          method: post
+
+  authResetPassword:
+    handler: dist/functions/auth/handler.resetPasswordConfirm
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/reset-password
+          method: patch
+
+  fieldsList:
+    handler: dist/functions/fields/handler.list
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields
+          method: get
+
+  fieldsDelete:
+    handler: dist/functions/fields/handler.remove
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{id}
+          method: delete
+
+  fieldsCropTypes:
+    handler: dist/functions/fields/handler.cropTypes
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/crop-types
+          method: get
+
+  fieldsByLocation:
+    handler: dist/functions/fields/handler.byLocation
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/by-location
+          method: get
+
+  fieldsByBbox:
+    handler: dist/functions/fields/handler.byBbox
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/by-bbox
+          method: get
+
+  fieldsCropParcels:
+    handler: dist/functions/fields/handler.cropParcels
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{peruslohkotunnus}/crop-parcels
+          method: get
+
+  fieldsCropParcelsGeom:
+    handler: dist/functions/fields/handler.cropParcelsGeom
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/fields/crop-parcels
+          method: post
+
+  fieldsCheckAoi:
+    handler: dist/functions/fields/handler.checkAoi
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/check-aoi
+          method: post
+
+  fieldsInfo:
+    handler: dist/functions/fields/handler.info
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/fields/info
+          method: post
+  
+  municipalitiesList:
+    handler: dist/functions/municipalities/handler.list
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/municipalities
+          method: get
+
+  municipalityByCode:
+    handler: dist/functions/municipalities/handler.byCode
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/municipalities/{kunta}
+          method: get
+
+  jobGet:
+    handler: dist/functions/jobs/handler.get
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/jobs/{jobId}
+          method: get
+
+  geocode:
+    handler: dist/functions/geocode/handler.search
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/geocode
+          method: get
+
+  growingSeason:
+    handler: dist/functions/growingSeason/handler.get
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/growing-season
+          method: get
+
+  validateGeoJson:
+    handler: dist/functions/validate/handler.validate
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/validate/geojson
+          method: post
+
+  ndviDatesApi:
+    handler: dist/functions/ndvi/handler.dates
+    runtime: nodejs20.x
+    memorySize: 1024
+    timeout: 120
+    environment:
+      CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
+      CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
+    events:
+      - httpApi:
+          path: /api/ndvi/dates
+          method: post
+
+  ndviImage:
+    handler: dist/functions/ndvi/handler.getImage
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/ndvi/image/{sentinelid}
+          method: get
+
+  ndviImages:
+    handler: dist/functions/ndvi/handler.getImages
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/ndvi/images
+          method: post
+  weatherAll:
+    handler: dist/functions/weather/handler.getWeatherAll
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/weather/all
+          method: post
+  mlStarter:
+    handler: dist/functions/mlStarter/handler.handler
+    runtime: nodejs20.x
+    memorySize: 512
+    timeout: 60
+    environment:
+      STEP_FUNCTION_ARN: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ndviWorkflow"
+
+  testEmail:
+    handler: dist/functions/email/handler.handler
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          method: GET
+          path: /dev/test-email    
+
+stepFunctions:
+  stateMachines:
+    ndviWorkflow:
+      name: ndviWorkflow
+      definition:
+        StartAt: distributor
+        States:
+          distributor:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [DistributorLambdaFunction, Arn]
+            Next: forEachField
+
+          forEachField:
+            Type: Map
+            ItemsPath: $.fields
+            MaxConcurrency: 2
+            Iterator:
+              StartAt: ndviDates
+              States:
+                ndviDates:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [NdviDatesLambdaFunction, Arn]
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
+                    - ErrorEquals: [States.TaskFailed]
+                      IntervalSeconds: 10
+                      MaxAttempts: 2
+                      BackoffRate: 2
+                  Catch:
+                    # Yksi epäonnistunut pelto ei kaada koko erää
+                    - ErrorEquals: [States.ALL]
+                      ResultPath: null
+                      Next: failedOrSkip
+                  Next: forEachDate
+
+                forEachDate:
+                  Type: Map
+                  ItemsPath: $.items
+                  MaxConcurrency: 5
+                  ItemSelector:
+                    item.$: $$.Map.Item.Value
+                    geometry.$: $.geometry
+                    userId.$: $.userId
+                  ResultPath: null   # processorien tulokset pois (payload-raja 256 KB)
+                  Iterator:
+                    StartAt: processor
+                    States:
+                      processor:
+                        Type: Task
+                        Resource:
+                          Fn::GetAtt: [ImageProcessorLambdaFunction, Arn]
+                        Retry:
+                          - ErrorEquals:
+                              - Lambda.ServiceException
+                              - Lambda.AWSLambdaException
+                              - Lambda.SdkClientException
+                              - Lambda.TooManyRequestsException
+                            IntervalSeconds: 2
+                            MaxAttempts: 3
+                            BackoffRate: 2
+                          - ErrorEquals: [States.TaskFailed]
+                            IntervalSeconds: 5
+                            MaxAttempts: 2
+                            BackoffRate: 2
+                        Catch:
+                          # Yksi epäonnistunut päivämäärä ei kaada muita
+                          - ErrorEquals: [States.ALL]
+                            ResultPath: null
+                            Next: dateFailed
+                        End: true
+                      dateFailed:
+                        Type: Pass
+                        End: true
+                  Next: doneOrSkip
+
+                # ML-ajoilla (ei jobId:tä) notifier ohitetaan
+                doneOrSkip:
+                  Type: Choice
+                  Choices:
+                    - Variable: $.jobId
+                      IsPresent: true
+                      Next: fieldDone
+                  Default: mlSkip
+
+                failedOrSkip:
+                  Type: Choice
+                  Choices:
+                    - Variable: $.jobId
+                      IsPresent: true
+                      Next: fieldFailed
+                  Default: mlSkip
+
+                mlSkip:
+                  Type: Pass
+                  End: true
+
+                fieldDone:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [NotifierLambdaFunction, Arn]
+                  Parameters:
+                    jobId.$: $.jobId
+                    aoiId.$: $.aoiId
+                    field_id.$: $.field_id
+                    status: done
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
+                  End: true
+
+                fieldFailed:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [NotifierLambdaFunction, Arn]
+                  Parameters:
+                    jobId.$: $.jobId
+                    aoiId.$: $.aoiId
+                    field_id.$: $.field_id
+                    status: failed
+                  Retry:
+                    - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        - Lambda.TooManyRequestsException
+                      IntervalSeconds: 2
+                      MaxAttempts: 3
+                      BackoffRate: 2
+                  End: true
+            End: true

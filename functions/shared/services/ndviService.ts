@@ -12,6 +12,7 @@ import isDateInGrowingSeason from '../utils/isdateingrowingseason'
 import { getWeatherFromDbOrFetch } from './weatherService'
 import type { WeatherStore } from './weatherService'
 import { getGrowingSeasons } from '../utils/growingSeasonUtils'
+import { CdseNotConnectedError } from './cdseTokenService'
 
 const geoUtils = require('../utils/geoUtils')
 
@@ -443,9 +444,13 @@ export const syncDates = async (
   const target = lagged < sentinelTo ? lagged : sentinelTo
 
   const existing = await mongodb.getDates(id)
+    // Ilman CDSE-tunnuksia token on tyhjä: uutta dataa ei voi hakea,
+  // mutta kannassa jo oleva data voidaan palauttaa
+  const canFetch = authToken !== ''
   const newDates: SentinelDate[] = []
 
   if (!existing || !existing.dates || existing.dates.length === 0) {
+    if (!canFetch) throw new CdseNotConnectedError()
     newDates.push(
       ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, sentinelTo, authToken, name, userId, kasvulohkot, saveImages, throwOnError)
     )
@@ -457,7 +462,7 @@ export const syncDates = async (
           ? new Date(existing.dates[0].generationtime)
           : null
 
-    if (!checkedUntil || dayStr(checkedUntil) < dayStr(target)) {
+    if (canFetch && (!checkedUntil || dayStr(checkedUntil) < dayStr(target))) {
       const newFrom = checkedUntil ? startOfNextDay(checkedUntil) : sentinelFrom
       try { 
         const hasNew = await hasNewScenes(normalizedGeometry, newFrom, target, authToken)
@@ -475,7 +480,7 @@ export const syncDates = async (
     }
 
     const oldestDate = existing.dates[existing.dates.length - 1]?.generationtime
-    if (oldestDate && sentinelFrom < new Date(oldestDate)) {
+    if (canFetch && oldestDate && sentinelFrom < new Date(oldestDate)) {
       newDates.push(
         ...await fetchAndSaveDates(normalizedGeometry, sentinelFrom, new Date(oldestDate), authToken, name, userId, [], saveImages, throwOnError)
       )

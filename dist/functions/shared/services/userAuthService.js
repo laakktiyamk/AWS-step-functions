@@ -3,10 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DUMMY_PASSWORD_HASH = void 0;
 exports.findUserByEmail = findUserByEmail;
 exports.registerUserInDb = registerUserInDb;
 exports.validatePassword = validatePassword;
 exports.createJwtToken = createJwtToken;
+exports.updatePasswordInDb = updatePasswordInDb;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = require("../mongo/models/User");
@@ -51,6 +53,11 @@ async function registerUserInDb(email, password, username) {
     return newUser.save();
 }
 /**
+ * Valid bcrypt hash (cost 10) used to equalize login timing when the
+ * user does not exist. The result of the comparison is always discarded.
+ */
+exports.DUMMY_PASSWORD_HASH = bcryptjs_1.default.hashSync("timing-equalizer", 10);
+/**
  * Validates a plaintext password against a stored bcrypt hash.
  *
  * @remarks
@@ -85,4 +92,17 @@ function createJwtToken(user) {
         _id: user._id,
         username: user.username
     }, process.env.SECRET, { expiresIn: "1h" });
+}
+/**
+ * Replaces the user's password with a new bcrypt hash.
+ *
+ * @param userId - The user's id.
+ * @param newPassword - The new plaintext password.
+ *
+ * @returns `true` if a user was updated, otherwise `false`.
+ */
+async function updatePasswordInDb(userId, newPassword) {
+    const hashed = await bcryptjs_1.default.hash(newPassword, 10);
+    const res = await User_1.User.updateOne({ _id: userId }, { $set: { password: hashed } });
+    return res.matchedCount > 0;
 }

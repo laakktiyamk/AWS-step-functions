@@ -54,6 +54,13 @@ export async function registerUserInDb(
 }
 
 /**
+ * Valid bcrypt hash (cost 10) used to equalize login timing when the
+ * user does not exist. The result of the comparison is always discarded.
+ */
+export const DUMMY_PASSWORD_HASH = bcrypt.hashSync("timing-equalizer", 10);
+
+
+/**
  * Validates a plaintext password against a stored bcrypt hash.
  *
  * @remarks
@@ -93,4 +100,21 @@ export function createJwtToken(user: any) {
     process.env.SECRET as string,
     { expiresIn: "1h" }
   );
+}
+
+/**
+ * Replaces the user's password with a new bcrypt hash.
+ *
+ * @param userId - The user's id.
+ * @param newPassword - The new plaintext password.
+ *
+ * @returns `true` if a user was updated, otherwise `false`.
+ */
+export async function updatePasswordInDb(
+  userId: string,
+  newPassword: string
+): Promise<boolean> {
+  const hashed = await bcrypt.hash(newPassword, 10);
+  const res = await User.updateOne({ _id: userId }, { $set: { password: hashed } });
+  return res.matchedCount > 0;
 }

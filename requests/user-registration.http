@@ -1,0 +1,248 @@
+### =====================================================================
+### REST Client (VS Code: humao.rest-client) - registration + CDSE credentials
+###
+### Create a `.env` file in the SAME folder as this file (add it to .gitignore!):
+###   BASE_URL=https://<api-id>.execute-api.eu-north-1.amazonaws.com/<stage>
+###   CDSE_CLIENT_ID=<your CDSE OAuth client id>
+###   CDSE_CLIENT_SECRET=<your CDSE OAuth client secret>
+###   TEST_EMAIL=<an inbox you can read, e.g. name+ndvitest1@example.com>
+###
+### Change the +tag in TEST_EMAIL for every full run (or wait ~65 min for the
+### TTL to delete an unverified test user).
+### Run the requests top to bottom with "Send Request".
+### =====================================================================
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YWY1MGE0NzUzMzNiZTZiZTNlZDJhNDgiLCJ1c2VybmFtZSI6Im5kdmktdGVzdGVyIiwiaWF0IjoxNzk1MTI4MTczLCJleHAiOjE3OTUxMzE3NzN9.btyWK0DXjPyguuBwIHWGG8rNxb1M3jdcWn__9dCJRd8
+
+@baseUrl = {{$dotenv BASE_URL}}
+@email = {{$dotenv TEST_EMAIL}}
+@password = Rytkynranta#2026
+@username = ndvi-tester
+
+
+### 1) Wrong CDSE credentials -> nothing must be created
+# Expected: 422  {"code":"CDSE_INVALID_CREDENTIALS"}
+# Mongo: no user with this email
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "username": "{{username}}",
+  "clientId": "sh-00000000-0000-0000-0000-000000000000",
+  "clientSecret": "wrong-secret"
+}
+
+
+### 2) CDSE fields missing
+# Expected: 400  {"code":"CDSE_BAD_REQUEST"}
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "username": "{{username}}"
+}
+
+
+### 3) Valid registration with your own CDSE credentials
+# Expected: 201 "User registered. Check your email..."
+# Mongo (Compass): user has verified:false, verifyExpiresAt (~65 min ahead),
+#   cdseClientId, cdseConnected:true, cdseVerifiedAt
+#   cdseSecretEnc is select:false in Mongoose, but visible in Compass; it must start with "v1."
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "username": "{{username}}",
+  "clientId": "{{$dotenv CDSE_CLIENT_ID}}",
+  "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
+}
+
+
+### 4) Same email again
+# Expected: 403 "Email already in use"
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "username": "{{username}}",
+  "clientId": "{{$dotenv CDSE_CLIENT_ID}}",
+  "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
+}
+
+
+### 5) Login before email verification
+# Expected: 403  {"code":"EMAIL_NOT_VERIFIED"}
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+
+### 6) Verify with an invalid token (64 characters)
+# Expected: 400 "Invalid or expired link"
+# NOTE: adjust the path if your verify route is named differently
+POST {{baseUrl}}/api/user/verify-email
+Content-Type: application/json
+
+{
+  "token": "0000000000000000000000000000000000000000000000000000000000000000"
+}
+
+
+### 7) Verify with the real token from the email link (?token=...)
+# Paste the 64-character token below.
+# Expected: 200 {"ok":true}
+# Mongo: verified:true and verifyExpiresAt is GONE
+POST {{baseUrl}}/api/user/verify-email
+Content-Type: application/json
+
+{
+  "token": "PASTE_TOKEN_FROM_EMAIL_HERE"
+}
+
+
+### 8) Login after verification
+# Expected: 200 { token, user }
+# @name login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+
+### 8b) Get CDSE credentials while logged in
+GET {{baseUrl}}/api/user/cdse-credentials
+Authorization: Bearer {{authToken}}
+
+### 9) (later, once the route exists) replace/connect CDSE credentials while logged in
+# Expected: 200 {"cdseConnected":true}   (wrong credentials: 422)
+# NOTE: adjust the Authorization header if your validateToken expects another format
+@authToken = {{login.response.body.$.token}}
+
+#### 9) Delete CDSE credentials while logged in   
+DELETE {{baseUrl}}/api/user/cdse-credentials
+Authorization: Bearer {{authToken}}
+
+### 10) Update CDSE credentials while logged in
+PUT {{baseUrl}}/api/user/cdse-credentials
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "clientId": "{{$dotenv CDSE_CLIENT_ID}}",
+  "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
+}
+
+
+
+### NDVI dates (käyttäjän omalla CDSE-tokenilla)
+POST {{baseUrl}}/api/ndvi/dates
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "CDSE-testi",
+  "start_date": "2026-04-01",
+  "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [24.019017492777, 64.233073829478],
+            [24.019347556527, 64.232990313561],
+            [24.019615315522, 64.232919904435],
+            [24.020482755912, 64.233076168492],
+            [24.022361546928, 64.233414777739],
+            [24.022304933188, 64.233512300717],
+            [24.022162986048, 64.233683337832],
+            [24.020810232778, 64.233413298021],
+            [24.020072476793, 64.23327072941],
+            [24.019017492777, 64.233073829478]
+          ]
+        ]
+      }
+}
+
+### CDSE-tunnusten vaihto (väärät tunnukset)
+PUT {{baseUrl}}/api/user/cdse-credentials
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": "vaara-id",
+  "clientSecret": "vaara-secret"
+}
+
+### Heikko salasana
+# Odotettu: 400 ja errors-lista
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "heikko+test@example.com",
+  "password": "heikko",
+  "username": "ab",
+  "clientId": "{{$dotenv CDSE_CLIENT_ID}}",
+  "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
+}
+
+### Sama client id toiselle käyttäjälle
+# Odotettu: 409 CDSE_ALREADY_IN_USE
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "toinen+test@example.com",
+  "password": "{{password}}",
+  "username": "toinen-tester",
+  "clientId": "{{$dotenv CDSE_CLIENT_ID}}",
+  "clientSecret": "{{$dotenv CDSE_CLIENT_SECRET}}"
+}
+
+
+### Unohtunut salasana (oikea, vahvistettu sähköposti)
+# Odotettu: 200 {"message":"If the email exists, a reset link has been sent."}
+# Sähköposti: viesti "Salasanan vaihto" ja linkki ...?token=<64 merkkiä>
+POST {{baseUrl}}/api/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "lang": "en"
+}
+
+### Salasanan vaihto tokenilla, token on viestin linkissä
+# Odotettu: 200 {"ok":true}
+
+PATCH {{baseUrl}}/api/user/reset-password
+Content-Type: application/json
+
+{
+  "token": "d4ffe6085adee9f9c072f0a1834c48c4dc0531a050acaefb951eb90f7eed9dd7",
+  "password": "Rytkynranta#2026"
+}
+
+
+### Unohtunut salasana (ei vahvistettu sähköposti)
+# EI tätä: Odotettu: 200 {"message":"If the email exists, a reset link has been sent."}
+# EI tätä: Sähköposti: viesti "Salasanan vaihto" ja linkki ...?token=<64 merkkiä>
+POST {{baseUrl}}/api/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "lang": "en"
+}

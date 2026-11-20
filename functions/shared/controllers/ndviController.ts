@@ -3,6 +3,7 @@ import type { SentinelRequest } from '../sentinelhub/sentinelhub_token'
 import { syncAOI } from '../services/ndviService'
 import * as mongodb from '../mongo/mongodb'
 import { IImage } from '../types'
+import { CdseNotConnectedError } from '../services/cdseTokenService'
 
 // ============================================================
 // processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat 
@@ -27,8 +28,8 @@ export const processAOI = async (req: SentinelRequest, res: Response, next: Next
       geometry,
       new Date(req.body.start_date),
       authToken,
-      req.body.name ?? '',      
-      req.user!._id,  
+      req.body.name ?? '',
+      req.user!._id,
       req.body.kasvulohkot ?? []
     )
     console.log('Request handled in (sec): ', (performance.now() - startTime) / 1000)
@@ -97,7 +98,11 @@ export const images = async (req: Request, res: Response, next: NextFunction): P
 
     res.status(200).json(imageMap)
   } catch (e: unknown) {
-    if (e instanceof Error) console.error(e.message)
+    if (e instanceof CdseNotConnectedError) {
+      res.status(409).json({ code: 'CDSE_NOT_CONNECTED' })
+      return
+    }
+    if (e instanceof Error) console.error('processAOI error:', e.message)
     res.status(500).json({ error: 'Server error' })
   }
 }

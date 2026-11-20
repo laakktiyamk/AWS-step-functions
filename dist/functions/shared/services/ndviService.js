@@ -50,6 +50,7 @@ const growingSeason_json_1 = __importDefault(require("../settings/growingSeason.
 const isdateingrowingseason_1 = __importDefault(require("../utils/isdateingrowingseason"));
 const weatherService_1 = require("./weatherService");
 const growingSeasonUtils_1 = require("../utils/growingSeasonUtils");
+const cdseTokenService_1 = require("./cdseTokenService");
 const geoUtils = require('../utils/geoUtils');
 // ============================================================
 // Concurrency limiter
@@ -313,8 +314,13 @@ const syncDates = async (geometry, startDate, authToken, name = '', userId = '',
     const lagged = endOfDay(new Date(Date.now() - LAG_DAYS * 24 * 60 * 60 * 1000));
     const target = lagged < sentinelTo ? lagged : sentinelTo;
     const existing = await mongodb.getDates(id);
+    // Ilman CDSE-tunnuksia token on tyhjä: uutta dataa ei voi hakea,
+    // mutta kannassa jo oleva data voidaan palauttaa
+    const canFetch = authToken !== '';
     const newDates = [];
     if (!existing || !existing.dates || existing.dates.length === 0) {
+        if (!canFetch)
+            throw new cdseTokenService_1.CdseNotConnectedError();
         newDates.push(...await (0, exports.fetchAndSaveDates)(normalizedGeometry, sentinelFrom, sentinelTo, authToken, name, userId, kasvulohkot, saveImages, throwOnError));
     }
     else {
@@ -323,7 +329,7 @@ const syncDates = async (geometry, startDate, authToken, name = '', userId = '',
             : existing.dates[0]
                 ? new Date(existing.dates[0].generationtime)
                 : null;
-        if (!checkedUntil || dayStr(checkedUntil) < dayStr(target)) {
+        if (canFetch && (!checkedUntil || dayStr(checkedUntil) < dayStr(target))) {
             const newFrom = checkedUntil ? startOfNextDay(checkedUntil) : sentinelFrom;
             try {
                 const hasNew = await (0, exports.hasNewScenes)(normalizedGeometry, newFrom, target, authToken);
@@ -340,7 +346,7 @@ const syncDates = async (geometry, startDate, authToken, name = '', userId = '',
             }
         }
         const oldestDate = existing.dates[existing.dates.length - 1]?.generationtime;
-        if (oldestDate && sentinelFrom < new Date(oldestDate)) {
+        if (canFetch && oldestDate && sentinelFrom < new Date(oldestDate)) {
             newDates.push(...await (0, exports.fetchAndSaveDates)(normalizedGeometry, sentinelFrom, new Date(oldestDate), authToken, name, userId, [], saveImages, throwOnError));
         }
         const needsAttach = (userId && !existing.userIds?.includes(userId)) ||

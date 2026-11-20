@@ -21,6 +21,16 @@ Content-Type: application/json
   "password": "Miuku@14"
 }
 
+### Login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "laakkti@gmail.com",
+  "password": "Miuku@14"
+}
+
+
 ### Signup
 POST {{baseUrl}}/api/user/register
 Content-Type: application/json
@@ -748,3 +758,12 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 { "geometry": { "type": "Point", "coordinates": [24.0, 64.2] } }
+
+
+### Testi väärällä tokenilla
+POST {{baseUrl}}/api/user/verify-email
+Content-Type: application/json
+
+{
+  "token": "xxx"
+}

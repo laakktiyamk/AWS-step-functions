@@ -11,6 +11,7 @@ const validateGeometry_1 = require("../shared/utils/validateGeometry");
 const mongoose_1 = __importDefault(require("mongoose"));
 const db_1 = require("../shared/mongo/db");
 const Job_1 = require("../shared/mongo/models/Job");
+const User_1 = require("../shared/mongo/models/User");
 const sfn = new client_sfn_1.SFNClient({ region: "eu-north-1" });
 // Lukee käyttäjän id:n Authorization-headerin JWT:stä (HTTP API antaa headerit pienillä kirjaimilla)
 const getUserIdFromEvent = (event) => {
@@ -59,6 +60,13 @@ const handler = async (event) => {
     if (items.length === 0) {
         return response(400, { error: "fields required" });
     }
+    await (0, db_1.connectDb)();
+    const user = await User_1.User.findById(userId).select("cdseConnected").lean();
+    if (!user)
+        return response(401, { error: "Unauthorized" });
+    if (user.cdseConnected !== true) {
+        return response(409, { code: "CDSE_NOT_CONNECTED" });
+    }
     const jobObjectId = new mongoose_1.default.Types.ObjectId();
     const jobId = jobObjectId.toString();
     const fields = [];
@@ -93,7 +101,6 @@ const handler = async (event) => {
         });
     }
     const stateMachineArn = process.env.STEP_FUNCTION_ARN;
-    await (0, db_1.connectDb)();
     await Job_1.Job.create({
         _id: jobObjectId,
         userId,

@@ -18,10 +18,12 @@ provider:
         - https://ndvimonitor.online
       allowedHeaders:
         - Content-Type
-        - Authorization
+        - Authorization      
       allowedMethods:
         - GET
         - POST
+        - PUT
+        - PATCH
         - DELETE
         - OPTIONS
       maxAge: 600
@@ -42,6 +44,10 @@ provider:
           Resource:
             - arn:aws:ses:eu-north-1:*:identity/*
             - arn:aws:ses:eu-north-1:*:configuration-set/*
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource: arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/ndvi/cdse-encryption-key    
 
   ecr:
     images:
@@ -145,6 +151,56 @@ functions:
       - httpApi:
           path: /api/user/verify-email
           method: post
+
+  authUpdateCdse:
+    handler: dist/functions/auth/handler.updateCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: put
+
+  authDeleteCdse:
+    handler: dist/functions/auth/handler.deleteCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: delete
+
+  authGetCdse:
+    handler: dist/functions/auth/handler.getCdse
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/cdse-credentials
+          method: get
+
+  authForgotPassword:
+    handler: dist/functions/auth/handler.forgotPasswordRequest
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/user/forgot-password
+          method: post
+
+  authResetPassword:
+    handler: dist/functions/auth/handler.resetPasswordConfirm
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/user/reset-password
+          method: patch
 
   fieldsList:
     handler: dist/functions/fields/handler.list

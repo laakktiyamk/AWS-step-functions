@@ -42,12 +42,18 @@ const mongoose_1 = __importStar(require("mongoose"));
  * Includes:
  * - unique email constraint
  * - required fields
+ * - TTL index on `verifyExpiresAt` (expireAfterSeconds: 0 = delete at that date)
  */
 const UserSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     username: { type: String, required: true },
-    verified: { type: Boolean, default: false }
+    verified: { type: Boolean, default: false },
+    verifyExpiresAt: { type: Date, index: { expireAfterSeconds: 0 } },
+    cdseClientId: { type: String, unique: true, sparse: true },
+    cdseSecretEnc: { type: String, select: false },
+    cdseConnected: { type: Boolean, default: false },
+    cdseVerifiedAt: { type: Date }
 });
 /**
  * Mongoose model for users.

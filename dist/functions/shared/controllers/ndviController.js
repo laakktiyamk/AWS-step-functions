@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.images = exports.image = exports.processAOI = void 0;
 const ndviService_1 = require("../services/ndviService");
 const mongodb = __importStar(require("../mongo/mongodb"));
+const cdseTokenService_1 = require("../services/cdseTokenService");
 // ============================================================
 // processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat 
 // ============================================================
@@ -119,8 +120,12 @@ const images = async (req, res, next) => {
         res.status(200).json(imageMap);
     }
     catch (e) {
+        if (e instanceof cdseTokenService_1.CdseNotConnectedError) {
+            res.status(409).json({ code: 'CDSE_NOT_CONNECTED' });
+            return;
+        }
         if (e instanceof Error)
-            console.error(e.message);
+            console.error('processAOI error:', e.message);
         res.status(500).json({ error: 'Server error' });
     }
 };

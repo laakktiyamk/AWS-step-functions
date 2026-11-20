@@ -7,6 +7,7 @@ import { validateGeometry } from "../shared/utils/validateGeometry";
 import mongoose from "mongoose";
 import { connectDb } from "../shared/mongo/db";
 import { Job } from "../shared/mongo/models/Job";
+import { User } from "../shared/mongo/models/User";
 
 const sfn = new SFNClient({ region: "eu-north-1" });
 
@@ -62,6 +63,13 @@ export const handler = async (event: any) => {
     return response(400, { error: "fields required" });
   }
 
+  await connectDb();
+  const user = await User.findById(userId).select("cdseConnected").lean();
+  if (!user) return response(401, { error: "Unauthorized" });
+  if (user.cdseConnected !== true) {
+    return response(409, { code: "CDSE_NOT_CONNECTED" });
+  }
+
   const jobObjectId = new mongoose.Types.ObjectId();
   const jobId = jobObjectId.toString();
 
@@ -102,7 +110,6 @@ export const handler = async (event: any) => {
 
   const stateMachineArn = process.env.STEP_FUNCTION_ARN as string;
 
-  await connectDb();
   await Job.create({
     _id: jobObjectId,
     userId,

@@ -1,0 +1,46 @@
+@baseUrl = {{$dotenv BASE_URL}}
+@resetToken = a902d2fcbb9d6c0c4b5096c3432af67bdafe8ff26ee7d4a2cca6d2137d0a8917
+
+### 1. Väärä salasana, olemassa oleva käyttäjä
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "laakkti.dev@outlook.com",
+  "password": "VaaraSalasana1!"
+}
+
+### 2. Olematon sähköposti
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "eiolemassa@example.com",
+  "password": "VaaraSalasana1!"
+}
+
+### forgot-password, olematon sähköposti
+POST {{baseUrl}}/api/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "eiolemassa@example.com"
+}
+
+### forgot-password, oikea sähköposti
+POST {{baseUrl}}/api/user/forgot-password
+Content-Type: application/json
+
+{
+  "email": "laakkti.dev@outlook.com"
+}
+
+
+### reset-password, ensimmäinen käyttö
+PATCH {{baseUrl}}/api/user/reset-password
+Content-Type: application/json
+
+{
+  "token": "{{resetToken}}",
+  "password": "Rytkynranta#2026"
+}

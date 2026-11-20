@@ -12,8 +12,18 @@ const lambdaAdapter = (handler, middlewares = [], needsSentinelToken = false) =>
             authToken = await (0, authenticate_CDSE_1.authenticate)();
             console.log("Token fetched:", authToken ? "OK" : "FAILED");
         }
-        const rawBody = event.body ?? event;
-        const body = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
+        let body;
+        try {
+            const rawBody = event.body ?? event;
+            body = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
+        }
+        catch {
+            return {
+                statusCode: 400,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: 'INVALID_JSON' }),
+            };
+        }
         const req = {
             body,
             params: event.pathParameters || {},

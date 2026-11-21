@@ -1,0 +1,38 @@
+@baseUrl = {{$dotenv BASE_URL}}
+@email = {{$dotenv TEST_EMAIL}}
+@password = Rytkynranta#2026
+
+### 1) Kirjaudu testitilillä
+# @name login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2) Väärä salasana: odotettu 401 INVALID_CREDENTIALS, mitään ei poistu
+DELETE {{baseUrl}}/api/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "password": "vaara-salasana"
+}
+
+### 3) Ei salasanaa: odotettu 400 PASSWORD_REQUIRED
+DELETE {{baseUrl}}/api/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{}
+
+### 4) Oikea salasana: odotettu 200 ACCOUNT_DELETED (EI PERUTTAVISSA)
+DELETE {{baseUrl}}/api/user
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "password": "{{password}}"
+}

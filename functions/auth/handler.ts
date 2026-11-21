@@ -13,7 +13,8 @@ import {
   deleteCdseCredentials,
   getCdseStatus,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  deleteAccount
 } from "../shared/controllers/userAuthController";
 
 export const register = lambdaAdapter(registerUser, [...registerValidation]);
@@ -24,3 +25,4 @@ export const deleteCdse = lambdaAdapter(deleteCdseCredentials, [authenticateUser
 export const forgotPasswordRequest = lambdaAdapter(forgotPassword);
 export const resetPasswordConfirm = lambdaAdapter(resetPassword, [...resetPasswordValidation]);
 export const getCdse = lambdaAdapter(getCdseStatus, [authenticateUser]);
+export const removeAccount = lambdaAdapter(deleteAccount, [authenticateUser]);

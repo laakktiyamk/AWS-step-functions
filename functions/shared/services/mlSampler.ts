@@ -41,7 +41,7 @@ export async function sampleMlFields(batchId: string, size: number) {
       target: 'ml',
       batchId,
       start_date: '2020-01-01T00:00:00Z',
-      end_date: '2025-12-31T00:00:00Z',
+      end_date: '2026-12-31T00:00:00Z',
       ...f,
     }))
 }

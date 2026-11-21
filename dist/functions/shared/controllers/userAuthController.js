@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.getCdseStatus = exports.deleteCdseCredentials = exports.updateCdseCredentials = exports.verifyEmailUser = exports.loginUser = exports.registerUser = void 0;
+exports.deleteAccount = exports.resetPassword = exports.forgotPassword = exports.getCdseStatus = exports.deleteCdseCredentials = exports.updateCdseCredentials = exports.verifyEmailUser = exports.loginUser = exports.registerUser = void 0;
 const express_validator_1 = require("express-validator");
 const userAuthService_1 = require("../services/userAuthService");
 const tokenService_1 = require("../services/tokenService");
@@ -9,6 +9,9 @@ const emailTemplates_1 = require("../services/emailTemplates");
 const tokenService_2 = require("../services/tokenService");
 const User_1 = require("../mongo/models/User");
 const cdseCredentialsService_1 = require("../services/cdseCredentialsService");
+const mongodb_1 = require("../mongo/mongodb");
+const fieldService_1 = require("../services/fieldService");
+const Job_1 = require("../mongo/models/Job");
 /**
  * How long the email verification link is valid (minutes).
  * Must match the lifetime of the "verify_email" token in tokenService.
@@ -343,3 +346,39 @@ const resetPassword = async (req, res) => {
     }
 };
 exports.resetPassword = resetPassword;
+const deleteAccount = async (req, res) => {
+    const userId = req.user?._id;
+    if (!userId)
+        return res.status(401).json({ code: "UNAUTHORIZED" });
+    const { password } = req.body;
+    if (typeof password !== "string" || password.length === 0) {
+        return res.status(400).json({ code: "PASSWORD_REQUIRED" });
+    }
+    try {
+        const user = await User_1.User.findById(String(userId)).select("+password");
+        if (!user)
+            return res.status(401).json({ code: "UNAUTHORIZED" });
+        // Salasanavahvistus: sama vertailu kuin kirjautumisessa
+        const match = await (0, userAuthService_1.validatePassword)(password, user.password);
+        if (!match) {
+            return res.status(401).json({ code: "INVALID_CREDENTIALS" });
+        }
+        // 1) Pellot: poistetaan vain käyttäjän merkintä, data (kuvat, sää) poistuu
+        //    vasta kun kukaan muu ei jaa peltoa
+        const fields = await (0, mongodb_1.getAllDateSets)(String(userId));
+        for (const f of fields) {
+            await (0, fieldService_1.removeFieldForUser)(f.id, String(userId));
+        }
+        // 2) Käyttäjän jobit
+        await Job_1.Job.deleteMany({ userId: String(userId) });
+        // 3) Käyttäjä viimeisenä (salatut CDSE-tunnukset poistuvat dokumentin mukana).
+        //    Jos jokin yllä kaatuu, tili on yhä olemassa ja poiston voi ajaa uudelleen.
+        await User_1.User.deleteOne({ _id: userId });
+        return res.status(200).json({ code: "ACCOUNT_DELETED" });
+    }
+    catch (err) {
+        console.error("Delete account error:", err instanceof Error ? err.message : "unknown error");
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+exports.deleteAccount = deleteAccount;

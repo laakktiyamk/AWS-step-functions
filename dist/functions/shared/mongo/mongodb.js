@@ -135,16 +135,6 @@ exports.getDates = getDates;
 /**
  * Retrieves all date sets.
  */
-/*
-export const getAllDateSets = async (userId: string): Promise<IDates[]> => {
-
-  console.log("###### getAllDateSets called with userId:", userId);
-
-  return await Dates.find(
-    { userIds: userId },              // ← vain käyttäjän omat lohkot
-    { _id: 0, __v: 0, geometry: 0 }
-  );
-};*/
 const getAllDateSets = async (userId) => {
     const result = await Dates_1.Dates.find({ userIds: userId }, { _id: 0, __v: 0, dates: 0 });
     return result;

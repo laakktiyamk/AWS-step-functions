@@ -23,6 +23,10 @@ import {
   connectCdseCredentials
 } from "../services/cdseCredentialsService";
 
+import { getAllDateSets } from "../mongo/mongodb";
+import { removeFieldForUser } from "../services/fieldService";
+import { Job } from "../mongo/models/Job";
+
 /**
  * How long the email verification link is valid (minutes).
  * Must match the lifetime of the "verify_email" token in tokenService.
@@ -403,6 +407,46 @@ export const resetPassword = async (req: Request, res: Response) => {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Reset password error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteAccount = async (req: Request, res: Response) => {
+  const userId = (req as Request & { user?: { _id?: unknown } }).user?._id;
+  if (!userId) return res.status(401).json({ code: "UNAUTHORIZED" });
+
+  const { password } = req.body;
+  if (typeof password !== "string" || password.length === 0) {
+    return res.status(400).json({ code: "PASSWORD_REQUIRED" });
+  }
+
+  try {
+    const user = await User.findById(String(userId)).select("+password");
+    if (!user) return res.status(401).json({ code: "UNAUTHORIZED" });
+
+    // Salasanavahvistus: sama vertailu kuin kirjautumisessa
+    const match = await validatePassword(password, user.password);
+    if (!match) {
+      return res.status(401).json({ code: "INVALID_CREDENTIALS" });
+    }
+
+    // 1) Pellot: poistetaan vain käyttäjän merkintä, data (kuvat, sää) poistuu
+    //    vasta kun kukaan muu ei jaa peltoa
+    const fields = await getAllDateSets(String(userId));
+    for (const f of fields) {
+      await removeFieldForUser(f.id, String(userId));
+    }
+
+    // 2) Käyttäjän jobit
+    await Job.deleteMany({ userId: String(userId) });
+
+    // 3) Käyttäjä viimeisenä (salatut CDSE-tunnukset poistuvat dokumentin mukana).
+    //    Jos jokin yllä kaatuu, tili on yhä olemassa ja poiston voi ajaa uudelleen.
+    await User.deleteOne({ _id: userId });
+
+    return res.status(200).json({ code: "ACCOUNT_DELETED" });
+  } catch (err) {
+    console.error("Delete account error:", err instanceof Error ? err.message : "unknown error");
     return res.status(500).json({ message: "Server error" });
   }
 };

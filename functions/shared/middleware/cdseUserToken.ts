@@ -1,6 +1,5 @@
 import { Response, NextFunction } from "express";
 import type { SentinelRequest } from "../sentinelhub/sentinelhub_token";
-import { authenticate } from "../utils/authenticate_CDSE";
 import {
   getCdseTokenForUser,
   CdseNotConnectedError,
@@ -36,27 +35,10 @@ export const checkUserToken = async (
     next();
   } catch (err) {
     if (err instanceof CdseNotConnectedError) {
-      if (process.env.CDSE_SHARED_FALLBACK === "true") {
-        // Same shared-account token that lambdaAdapter fetches when needsSentinelToken is true
-        req.authToken = await authenticate();
-        next();
-        return;
-      }
-      
-
-      if (err instanceof CdseNotConnectedError) {
-        if (process.env.CDSE_SHARED_FALLBACK === "true") {
-          // Same shared-account token that lambdaAdapter fetches when needsSentinelToken is true
-          req.authToken = await authenticate();
-          next();
-          return;
-        }
-        // No credentials connected: let the request through without a token.
-        // Reading data that is already in the database does not need one;
-        // the service decides when a token is actually required.
-        next();
-        return;
-      }
+      // No credentials connected: let the request through without a token.
+      // Reading data that is already in the database does not need one;
+      // the service decides when a token is actually required.
+      next();
       return;
     }
     if (err instanceof CdseAuthError) {

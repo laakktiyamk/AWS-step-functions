@@ -2,16 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lambdaAdapter = void 0;
 const db_1 = require("./mongo/db");
-const authenticate_CDSE_1 = require("./utils/authenticate_CDSE");
-const lambdaAdapter = (handler, middlewares = [], needsSentinelToken = false) => {
+/**
+ * Kolmas parametri on jäljellä vain vanhojen kutsujen yhteensopivuuden vuoksi.
+ * Jaettua CDSE-tokenia ei enää haeta: req.authToken asetetaan käyttäjäkohtaisesti
+ * checkUserToken-middlewaressa.
+ */
+const lambdaAdapter = (handler, middlewares = [], _needsSentinelToken = false) => {
     return async (event) => {
         await (0, db_1.connectDb)();
-        let authToken = null;
-        if (needsSentinelToken) {
-            console.log("Fetching Sentinel token...");
-            authToken = await (0, authenticate_CDSE_1.authenticate)();
-            console.log("Token fetched:", authToken ? "OK" : "FAILED");
-        }
+        const authToken = null;
         let body;
         try {
             const rawBody = event.body ?? event;

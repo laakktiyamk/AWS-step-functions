@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Käyttö: ./run-batch.sh batch2 100
+# Käyttö: ./run-batch.sh batch2 100 [credIndex]
+#   credIndex = CDSE_ML_CLIENTS-listan indeksi (oletus 0)
 set -e
 aws lambda invoke \
   --function-name ndvi-pipeline-dev-mlStarter \
-  --payload "{\"batchId\":\"$1\",\"size\":${2:-100}}" \
+  --payload "{\"batchId\":\"$1\",\"size\":${2:-100},\"credIndex\":${3:-0}}" \
   --cli-binary-format raw-in-base64-out \
   --profile AWS-step-functions \
   --region eu-north-1 \

@@ -110,7 +110,7 @@ export const hasNewScenes = async (
   authToken: string
 ): Promise<boolean> => {
   const catalogUrl = 'https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search'
-  const maxCloud = 80 // käytä samaa rajaa kuin nykyisessä haussasi
+  const maxCloud = 20 // käytä samaa rajaa kuin nykyisessä haussasi
 
   const ranges = getGrowingSeasons(fromTime.getUTCFullYear(), toTime.getUTCFullYear())
     .map(s => ({

@@ -1,20 +1,19 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { Request, Response, NextFunction } from 'express'
 import { connectDb } from './mongo/db'
-import { authenticate } from './utils/authenticate_CDSE'
 
 type ExpressHandler = (req: Request, res: Response, next: NextFunction) => void | Promise<void> | any
 
-export const lambdaAdapter = (handler: ExpressHandler, middlewares: ExpressHandler[] = [], needsSentinelToken = false) => {
+/**
+ * Kolmas parametri on jäljellä vain vanhojen kutsujen yhteensopivuuden vuoksi.
+ * Jaettua CDSE-tokenia ei enää haeta: req.authToken asetetaan käyttäjäkohtaisesti
+ * checkUserToken-middlewaressa.
+ */
+export const lambdaAdapter = (handler: ExpressHandler, middlewares: ExpressHandler[] = [], _needsSentinelToken = false) => {
   return async (event: APIGatewayProxyEventV2 | any) => {
     await connectDb()
 
-    let authToken: string | null = null
-    if (needsSentinelToken) {
-      console.log("Fetching Sentinel token...")
-      authToken = await authenticate()
-      console.log("Token fetched:", authToken ? "OK" : "FAILED")
-    }
+    const authToken: string | null = null
 
     let body: any
     try {

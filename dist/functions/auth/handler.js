@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCdse = exports.resetPasswordConfirm = exports.forgotPasswordRequest = exports.deleteCdse = exports.updateCdse = exports.verifyEmail = exports.login = exports.register = void 0;
+exports.removeAccount = exports.getCdse = exports.resetPasswordConfirm = exports.forgotPasswordRequest = exports.deleteCdse = exports.updateCdse = exports.verifyEmail = exports.login = exports.register = void 0;
 const adapter_1 = require("../shared/adapter");
 const validateToken_1 = require("../shared/middleware/validateToken");
 const inputValidation_1 = require("../shared/middleware/inputValidation");
@@ -13,3 +13,4 @@ exports.deleteCdse = (0, adapter_1.lambdaAdapter)(userAuthController_1.deleteCds
 exports.forgotPasswordRequest = (0, adapter_1.lambdaAdapter)(userAuthController_1.forgotPassword);
 exports.resetPasswordConfirm = (0, adapter_1.lambdaAdapter)(userAuthController_1.resetPassword, [...inputValidation_1.resetPasswordValidation]);
 exports.getCdse = (0, adapter_1.lambdaAdapter)(userAuthController_1.getCdseStatus, [validateToken_1.authenticateUser]);
+exports.removeAccount = (0, adapter_1.lambdaAdapter)(userAuthController_1.deleteAccount, [validateToken_1.authenticateUser]);

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const authenticate_CDSE_1 = require("../shared/utils/authenticate_CDSE");
+const authenticate_CDSE_ML_1 = require("../shared/utils/authenticate_CDSE_ML");
 const cdseTokenService_1 = require("../shared/services/cdseTokenService");
 const db_1 = require("../shared/mongo/db");
 const connections_1 = require("../shared/mongo/connections");
@@ -16,7 +16,7 @@ const handler = async (event) => {
         : event.geometry;
     // ── ML-ajo: tallennus ML_data- ja ML_weather-kokoelmiin, ei kuvia ──
     if (event.target === 'ml') {
-        const authToken = await (0, authenticate_CDSE_1.authenticate)();
+        const authToken = await (0, authenticate_CDSE_ML_1.authenticateMl)(event.credIndex ?? 0);
         console.log('ML: start', event.field_id);
         await (0, connections_1.ensureParcelConnected)();
         console.log('ML: parcel connected');

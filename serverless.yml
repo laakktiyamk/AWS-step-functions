@@ -102,7 +102,10 @@ functions:
     handler: dist/functions/ndviDates/handler.handler
     runtime: nodejs20.x
     memorySize: 512
-    timeout: 120   # syncDates + sää usealta kasvukaudelta
+    timeout: 300   # syncDates + sää usealta kasvukaudelta
+    environment:
+      CDSE_ML_CLIENTS: ${env:CDSE_ML_CLIENTS}
+  
     # environment:
     #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
     #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
@@ -201,6 +204,16 @@ functions:
       - httpApi:
           path: /api/user/reset-password
           method: patch
+
+  authDeleteAccount:
+    handler: dist/functions/auth/handler.removeAccount
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 29
+    events:
+      - httpApi:
+          path: /api/user
+          method: delete
 
   fieldsList:
     handler: dist/functions/fields/handler.list

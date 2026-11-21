@@ -1,4 +1,4 @@
-import { authenticate } from '../shared/utils/authenticate_CDSE'
+import { authenticateMl } from '../shared/utils/authenticate_CDSE_ML'
 import { getCdseTokenForUser, CdseNotConnectedError } from '../shared/services/cdseTokenService'
 import { connectDb } from '../shared/mongo/db'
 import { ensureParcelConnected } from '../shared/mongo/connections'
@@ -19,7 +19,7 @@ export const handler = async (event: any) => {
 
   // ── ML-ajo: tallennus ML_data- ja ML_weather-kokoelmiin, ei kuvia ──
   if (event.target === 'ml') {
-    const authToken = await authenticate()
+    const authToken = await authenticateMl(event.credIndex ?? 0)
     console.log('ML: start', event.field_id)
     await ensureParcelConnected()
     console.log('ML: parcel connected')

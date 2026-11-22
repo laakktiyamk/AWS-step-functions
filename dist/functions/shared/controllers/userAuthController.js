@@ -38,23 +38,29 @@ const toErrorList = (errors) => errors.array().map((e) => ({
  * @remarks
  * This controller:
  * - validates request body using `express-validator`
- * - checks whether the email is already in use
  * - verifies the user's own CDSE credentials by fetching a token
- *   (before anything is stored)
+ *   (first, so the checks below cannot be probed without working
+ *   credentials)
+ * - checks whether the CDSE client ID is already in use
+ * - checks whether the email is already in use
  * - creates a new user in the database
  * - stores the CDSE secret encrypted and sets the verification deadline
  *   (`verifyExpiresAt`, removed when the email is verified)
- * - returns a sanitized user object (no password)
+ * - returns a generic success message
  *
  * Validation errors return `400 Bad Request`.
- * Duplicate emails return `403 Forbidden`.
  * Rejected CDSE credentials return `422`, CDSE unreachable returns `503`.
+ * A CDSE client ID already in use returns `409` with the code
+ * `CDSE_ALREADY_IN_USE`.
+ * A duplicate email returns the same `201` response as a successful
+ * registration, so the API does not reveal which emails have an account
+ * (account enumeration).
  *
  * @param req - Express request containing `email`, `password`, `username`,
  *              `clientId` and `clientSecret` (CDSE OAuth client).
- * @param res - Express response returning the created user.
+ * @param res - Express response returning a generic success message.
  *
- * @returns A JSON response with the new user or an error message.
+ * @returns A JSON response with a message or an error code.
  */
 const registerUser = async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
@@ -69,16 +75,13 @@ const registerUser = async (req, res) => {
         clientId: clientId.trim(),
         clientSecret: clientSecret.trim()
     };
+    // Same response for a new and an already registered email
+    const genericOk = () => res.status(201).json({
+        message: "User registered. Check your email to verify your account."
+    });
     try {
-        const existing = await (0, userAuthService_1.findUserByEmail)(email);
-        if (existing) {
-            return res.status(403).json({ message: "Email already in use" });
-        }
-        const clientIdTaken = await User_1.User.exists({ cdseClientId: cdseCreds.clientId });
-        if (clientIdTaken) {
-            return res.status(409).json({ code: "CDSE_ALREADY_IN_USE" });
-        }
-        // 1) Verify the CDSE credentials BEFORE creating the user
+        // 1) Verify the CDSE credentials first, so the checks below cannot be
+        //    probed without working credentials (account enumeration)
         try {
             await (0, cdseCredentialsService_1.verifyCdseCredentials)(cdseCreds);
         }
@@ -90,6 +93,15 @@ const registerUser = async (req, res) => {
                     : res.status(503).json({ code: "CDSE_UNAVAILABLE" });
             }
             throw err;
+        }
+        const clientIdTaken = await User_1.User.exists({ cdseClientId: cdseCreds.clientId });
+        if (clientIdTaken) {
+            return res.status(409).json({ code: "CDSE_ALREADY_IN_USE" });
+        }
+        // Existing email: same response as a successful registration
+        const existing = await (0, userAuthService_1.findUserByEmail)(email);
+        if (existing) {
+            return genericOk();
         }
         const newUser = await (0, userAuthService_1.registerUserInDb)(email, password, username);
         // 2) Deadline first (so a partial failure still cleans itself up via TTL),
@@ -117,14 +129,7 @@ const registerUser = async (req, res) => {
         catch (mailErr) {
             console.error("Verification email error:", mailErr);
         }
-        return res.status(201).json({
-            message: "User registered. Check your email to verify your account.",
-            user: {
-                id: newUser._id,
-                email: newUser.email,
-                username: newUser.username
-            }
-        });
+        return genericOk();
     }
     catch (err) {
         console.error("Register error:", err);
@@ -361,7 +366,8 @@ const deleteAccount = async (req, res) => {
         // Salasanavahvistus: sama vertailu kuin kirjautumisessa
         const match = await (0, userAuthService_1.validatePassword)(password, user.password);
         if (!match) {
-            return res.status(401).json({ code: "INVALID_CREDENTIALS" });
+            // 422 (not 401) so the frontend does not treat it as an expired session
+            return res.status(422).json({ code: "INVALID_CREDENTIALS" });
         }
         // 1) Pellot: poistetaan vain käyttäjän merkintä, data (kuvat, sää) poistuu
         //    vasta kun kukaan muu ei jaa peltoa

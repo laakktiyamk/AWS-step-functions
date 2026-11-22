@@ -105,20 +105,13 @@ functions:
     timeout: 300   # syncDates + sää usealta kasvukaudelta
     environment:
       CDSE_ML_CLIENTS: ${env:CDSE_ML_CLIENTS}
-  
-    # environment:
-    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
    
   imageProcessor:
     handler: dist/functions/processor/handler.handler
     runtime: nodejs20.x
     memorySize: 1024
     timeout: 60
-    #environment:
-    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
-
+  
   classifier:
     image:
       name: classifier-image
@@ -370,9 +363,6 @@ functions:
     runtime: nodejs20.x
     memorySize: 1024
     timeout: 120
-    # environment:
-    #  CDSE_CLIENT_ID: ${env:CDSE_CLIENT_ID}
-    #  CDSE_CLIENT_SECRET: ${env:CDSE_CLIENT_SECRET}
     events:
       - httpApi:
           path: /api/ndvi/dates

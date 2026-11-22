@@ -269,3 +269,28 @@ Content-Type: application/json
   "email": "test@example.com",
   "lang": "en"
 }
+
+
+### Rekisteröinti jo käytössä olevalla sähköpostilla
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "username": "enumtest",
+  "email": "laakkti@hotmail.com",
+  "password": "Testi1234!",
+  "cdseClientId": "x",
+  "cdseClientSecret": "x"
+}
+
+### Olemassa oleva sähköposti + keksityt CDSE-tunnukset → nyt 422 (ei paljasta sähköpostia)
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "username": "enumtest",
+  "email": "laakkti@hotmail.com",
+  "password": "Testi1234!",
+  "clientId": "x",
+  "clientSecret": "x"
+}

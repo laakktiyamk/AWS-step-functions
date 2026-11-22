@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "mkdir -p ~/.docker-ecr && aws ecr get-login-password --region eu-north-1 --profile AWS-step-functions | DOCKER_CONFIG=~/.docker-ecr docker login --username AWS --password-stdin 223057859479.dkr.ecr.eu-north-1.amazonaws.com && DOCKER_CONFIG=~/.docker-ecr DOCKER_BUILDKIT=0 DOCKER_DEFAULT_PLATFORM=linux/amd64 serverless deploy --aws-profile AWS-step-functions"
+    "xxxdeploy": "mkdir -p ~/.docker-ecr && aws ecr get-login-password --region eu-north-1 --profile AWS-step-functions | DOCKER_CONFIG=~/.docker-ecr docker login --username AWS --password-stdin 223057859479.dkr.ecr.eu-north-1.amazonaws.com && DOCKER_CONFIG=~/.docker-ecr DOCKER_BUILDKIT=0 DOCKER_DEFAULT_PLATFORM=linux/amd64 serverless deploy --aws-profile AWS-step-functions",
+    "deploy": "bash ./deploy.sh"
   },
   "keywords": [],
   "author": "",

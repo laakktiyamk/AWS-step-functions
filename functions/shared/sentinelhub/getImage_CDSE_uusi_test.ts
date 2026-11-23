@@ -1,0 +1,127 @@
+import axios from "axios";
+import { bbox as get_bounding_box } from "@turf/bbox";
+import { calculateHeight, calculateWidth } from "../utils/calculateDim";
+//import { getDimsForResolution } from "../utils/pixelDims";
+
+const CDSE_PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process";
+
+interface GeoJSONPolygon {
+  type: "Polygon" | "MultiPolygon";
+  coordinates: number[][][] | number[][][][];
+}
+interface WidthHeight { width: number; height: number; }
+
+function addOneDay(date: Date | string): string {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + 1);
+  return nextDate.toISOString();
+}
+
+
+import { distance } from "@turf/distance";
+
+async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight> {
+  // Pidempi sivu ~2 m/pikseli, rajattuna 256–512 px:iin
+  const [minX, minY, maxX, maxY] = get_bounding_box(geometry as any);
+  const midY = (minY + maxY) / 2;
+  const widthM = distance([minX, midY], [maxX, midY], { units: "meters" });
+  const heightM = distance([minX, minY], [minX, maxY], { units: "meters" });
+  const res = Math.min(512, Math.max(256, Math.ceil(Math.max(widthM, heightM) / 2)));
+
+  let width = res;
+  let height = await calculateHeight(geometry, width);
+  if (width < height) {
+    height = res;
+    width = await calculateWidth(geometry, height);
+  }
+  return { width, height };
+}
+
+async function getWidthAndHeightOLD(geometry: GeoJSONPolygon): Promise<WidthHeight> {
+  const res = 384; //256; //512; //1024;
+  let width = res;
+  let height = await calculateHeight(geometry, width);
+  if (width < height) {
+    height = res;
+    width = await calculateWidth(geometry, height);
+  }
+  return { width, height };
+}
+
+const evalscript = `
+//VERSION=3
+function setup() {
+  return {
+    input: ["B04", "B08", "dataMask"],
+    output: { id: "default", bands: 4 }
+  };
+}
+function evaluatePixel(samples) {
+  const val = index(samples.B08, samples.B04);
+  const a = samples.dataMask;
+  if (val < 0.30) return [0.957, 0.263, 0.212, a];
+  if (val < 0.45) return [1.0, 0.596, 0.0, a];
+  if (val < 0.60) return [1.0, 0.922, 0.231, a];
+  if (val < 0.65) return [0.31, 0.54, 0.18, a];
+  if (val < 0.70) return [0.25, 0.49, 0.14, a];
+  if (val < 0.75) return [0.19, 0.43, 0.11, a];
+  if (val < 0.80) return [0.13, 0.38, 0.07, a];
+  if (val < 0.85) return [0.06, 0.33, 0.04, a];
+  return [0, 0.27, 0, a];
+}
+`;
+
+export const getImage = async (
+  date: Date | string,
+  geometry: GeoJSONPolygon,
+  authToken: string
+): Promise<Buffer | null> => {
+  
+  
+//const IMAGE_METERS_PER_PIXEL = 2; // vaihda 10:een, jos karkeampi kuva riittää
+//const { width, height } = getDimsForResolution(geometry, IMAGE_METERS_PER_PIXEL);
+  const { width, height } = await getWidthAndHeight(geometry);
+  const bbox = get_bounding_box(geometry as any);
+
+  const requestBody = {
+    input: {
+      bounds: {
+        bbox: [bbox[0], bbox[1], bbox[2], bbox[3]],
+        geometry,
+        properties: { crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84" },
+      },
+      data: [{
+        type: "sentinel-2-l2a",
+        dataFilter: {
+          timeRange: {
+            from: new Date(date).toISOString(),
+            to: new Date(addOneDay(date)).toISOString(),
+          },
+        },
+        processing: { upsampling: "BICUBIC" },
+      }],
+    },
+    output: {
+    width,
+    height,    
+      responses: [{ identifier: "default", format: { type: "image/png" } }],
+    },
+    evalscript,
+  };
+
+  try {
+    const response = await axios.post(CDSE_PROCESS_URL, requestBody, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+        Accept: "image/png",
+      },
+      responseType: "arraybuffer",
+    });
+    console.log('[PU] image', response.headers['x-processingunits-spent']);
+    return Buffer.from(response.data);
+  } catch (e) {
+    console.error("IMAGE ERROR: ", e);
+    return null;
+  }
+};

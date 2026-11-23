@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
-import * as calculateDim from "../utils/calculateDim";
+import { bbox as getBoundingBox } from "@turf/bbox";
+import { distance } from "@turf/distance";
 
 export interface Geometry {
   type: string;
@@ -53,6 +54,32 @@ export interface DayStatistics {
   ndviClassPercentages: number[];
 }
 
+/** Sentinel-2:n B04/B08-kaistojen natiiviresoluutio metreinä. */
+const STATS_METERS_PER_PIXEL = 10;
+
+/**
+ * Laskee statistiikkapyynnön pikselikoon geometrian bboxista natiiviresoluutiolla.
+ *
+ * @remarks
+ * Statistical API laskuttaa PU:t pyydetyn rasterin (bbox) pikselimäärän mukaan.
+ * Aiempi kiinteä 512 px:n pidempi sivu teki pienestä pellosta ~1 PU:n jokaista
+ * aikanäytettä kohden ja interpoloi 10 m:n dataa näennäisesti tarkemmaksi.
+ * Kuva (getImage_CDSE.ts) mitoitetaan erikseen visualisointia varten.
+ *
+ * @param geom - GeoJSON-geometria WGS84-koordinaatteina
+ * @returns width ja height pikseleinä (vähintään 1)
+ */
+function getDimsForStats(geom: Geometry): { width: number; height: number } {
+  const [minX, minY, maxX, maxY] = getBoundingBox(geom as any);
+  const midY = (minY + maxY) / 2;
+  const widthM = distance([minX, midY], [maxX, midY], { units: "meters" });
+  const heightM = distance([minX, minY], [minX, maxY], { units: "meters" });
+  return {
+    width: Math.max(1, Math.ceil(widthM / STATS_METERS_PER_PIXEL)),
+    height: Math.max(1, Math.ceil(heightM / STATS_METERS_PER_PIXEL)),
+  };
+}
+
 export const getStatistics = async (
   geometry: Geometry,
   dateFrom: string,
@@ -91,18 +118,7 @@ function evaluatePixel(s) {
 }
 `;
 
-  async function getWidthAndHeight(geom: Geometry): Promise<{ width: number; height: number }> {
-    const res = 512;
-    let width = res;
-    let height = await calculateDim.calculateHeight(geom, width);
-    if (width < height) {
-      height = res;
-      width = await calculateDim.calculateWidth(geom, height);
-    }
-    return { width, height };
-  }
-
-  const { width, height } = await getWidthAndHeight(geometry);
+  const { width, height } = getDimsForStats(geometry);
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -150,8 +166,6 @@ function evaluatePixel(s) {
         aggregation: {
           timeRange: { from, to },
           aggregationInterval: { of: "P1D" },
-          RESX: "10m",
-          RESY: "10m",
           width,
           height,
           evalscript,
@@ -170,6 +184,11 @@ function evaluatePixel(s) {
         },
       },
     }));
+    // PU-luku pidetään rivin viimeisenä, jotta CloudWatch-kyselyn parse toimii.
+    console.log(
+      '[PU] statistics', from, to, `${width}x${height}`,
+      result.headers['x-processingunits-spent']
+    );
     return result.data.data ?? [];
   };
 
@@ -217,25 +236,6 @@ function evaluatePixel(s) {
         dayData.outputs?.classBand?.bands?.B0?.histogram?.bins ?? [];
 
       const total = bins.reduce((sum, b) => sum + b.count, 0);
-
-      /*const ndviClassPercentages: NdviClassPercentage[] = bins
-        .filter((b) => b.count > 0)
-        .map((b) => ({
-          class: b.lowEdge,
-          percentage: total > 0 ? +((b.count / total) * 100).toFixed(2) : 0,
-        }));*/
-
-      /*const ndviClassPercentages: number[] = bins.map((b) =>
-        total > 0 ? +((b.count / total) * 100).toFixed(2) : 0
-      );*/
-      /*
-            const ndviClassPercentages: number[] = [
-              bins.filter(b => b.lowEdge === 1).reduce((sum, b) => sum + b.count, 0),  // cls 1
-              bins.filter(b => b.lowEdge === 2).reduce((sum, b) => sum + b.count, 0),  // cls 2
-              bins.filter(b => b.lowEdge === 3).reduce((sum, b) => sum + b.count, 0),  // cls 3
-              bins.filter(b => b.lowEdge >= 4).reduce((sum, b) => sum + b.count, 0),   // cls 4-9
-            ].map(count => total > 0 ? +((count / total) * 100).toFixed(2) : 0);
-      */
 
       const raw = [
         bins.filter(b => b.lowEdge === 1).reduce((sum, b) => sum + b.count, 0),

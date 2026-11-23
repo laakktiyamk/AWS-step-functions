@@ -19,7 +19,7 @@ function addOneDay(date: Date | string): string {
 
 
 async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight> {
-  const res = 512; //1024;
+  const res = 512; //384; //256;
   let width = res;
   let height = await calculateHeight(geometry, width);
   if (width < height) {
@@ -32,22 +32,23 @@ async function getWidthAndHeight(geometry: GeoJSONPolygon): Promise<WidthHeight>
 const evalscript = `
 //VERSION=3
 function setup() {
-    return { input: ["B04", "B08", "dataMask"], output: [{ id: "default", bands: 4 }, { id: "index", bands: 1, sampleType: "FLOAT32" }, { id: "dataMask", bands: 1 }] };
+  return {
+    input: ["B04", "B08", "dataMask"],
+    output: { id: "default", bands: 4 }
+  };
 }
 function evaluatePixel(samples) {
-    let val = index(samples.B08, samples.B04);
-    const indexVal = samples.dataMask === 1 ? val : NaN;
-    let imgVals;
-    if (val<0.30) imgVals = [0.957,0.263,0.212,samples.dataMask];
-    else if (val<0.45) imgVals = [1.0,0.596,0.0,samples.dataMask];
-    else if (val<0.60) imgVals = [1.0,0.922,0.231,samples.dataMask];
-    else if (val<0.65) imgVals = [0.31,0.54,0.18,samples.dataMask];
-    else if (val<0.70) imgVals = [0.25,0.49,0.14,samples.dataMask];
-    else if (val<0.75) imgVals = [0.19,0.43,0.11,samples.dataMask];
-    else if (val<0.80) imgVals = [0.13,0.38,0.07,samples.dataMask];
-    else if (val<0.85) imgVals = [0.06,0.33,0.04,samples.dataMask];
-    else imgVals = [0,0.27,0,samples.dataMask];
-    return { default: imgVals, index: [indexVal], dataMask: [samples.dataMask] };
+  const val = index(samples.B08, samples.B04);
+  const a = samples.dataMask;
+  if (val < 0.30) return [0.957, 0.263, 0.212, a];
+  if (val < 0.45) return [1.0, 0.596, 0.0, a];
+  if (val < 0.60) return [1.0, 0.922, 0.231, a];
+  if (val < 0.65) return [0.31, 0.54, 0.18, a];
+  if (val < 0.70) return [0.25, 0.49, 0.14, a];
+  if (val < 0.75) return [0.19, 0.43, 0.11, a];
+  if (val < 0.80) return [0.13, 0.38, 0.07, a];
+  if (val < 0.85) return [0.06, 0.33, 0.04, a];
+  return [0, 0.27, 0, a];
 }
 `;
 
@@ -98,6 +99,7 @@ export const getImage = async (
       },
       responseType: "arraybuffer",
     });
+    console.log('[PU] image', response.headers['x-processingunits-spent']);
     return Buffer.from(response.data);
   } catch (e) {
     console.error("IMAGE ERROR: ", e);

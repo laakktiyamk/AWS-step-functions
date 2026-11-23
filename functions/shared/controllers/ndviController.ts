@@ -4,9 +4,10 @@ import { syncAOI } from '../services/ndviService'
 import * as mongodb from '../mongo/mongodb'
 import { IImage } from '../types'
 import { CdseNotConnectedError } from '../services/cdseTokenService'
+import { isValidStartDate } from '../utils/startDate'
 
 // ============================================================
-// processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat 
+// processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat
 // ============================================================
 
 export const processAOI = async (req: SentinelRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -20,6 +21,12 @@ export const processAOI = async (req: SentinelRequest, res: Response, next: Next
       : req.body.geometry
   } catch (e) {
     res.status(400).send('invalid geometry')
+    return
+  }
+
+  // start_date: kasvukauden alku vuodesta 2020 alkaen (ks. utils/startDate)
+  if (!isValidStartDate(req.body.start_date)) {
+    res.status(400).json({ code: 'INVALID_START_DATE' })
     return
   }
 
@@ -37,13 +44,18 @@ export const processAOI = async (req: SentinelRequest, res: Response, next: Next
     if (data) res.status(200).send(data)
     else res.status(404).send('no data available')
   } catch (e: unknown) {
+    // Uusi AOI ilman käyttäjän CDSE-tunnuksia (syncAOI heittää)
+    if (e instanceof CdseNotConnectedError) {
+      res.status(409).json({ code: 'CDSE_NOT_CONNECTED' })
+      return
+    }
     if (e instanceof Error) console.error('processAOI error:', e.message)
     res.status(500).json({ error: 'Server error' })
   }
 }
 
 // ============================================================
-// Image handlers 
+// Image handlers
 // ============================================================
 
 export const image = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -98,11 +110,7 @@ export const images = async (req: Request, res: Response, next: NextFunction): P
 
     res.status(200).json(imageMap)
   } catch (e: unknown) {
-    if (e instanceof CdseNotConnectedError) {
-      res.status(409).json({ code: 'CDSE_NOT_CONNECTED' })
-      return
-    }
-    if (e instanceof Error) console.error('processAOI error:', e.message)
+    if (e instanceof Error) console.error('images error:', e.message)
     res.status(500).json({ error: 'Server error' })
   }
 }

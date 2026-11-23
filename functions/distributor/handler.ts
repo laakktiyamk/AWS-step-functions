@@ -3,11 +3,13 @@ import jwt from "jsonwebtoken";
 
 import { geometryHash } from "../shared/utils/hash";
 import { validateGeometry } from "../shared/utils/validateGeometry";
+import { isValidStartDate } from "../shared/utils/startDate";
 
 import mongoose from "mongoose";
 import { connectDb } from "../shared/mongo/db";
 import { Job } from "../shared/mongo/models/Job";
 import { User } from "../shared/mongo/models/User";
+
 
 const sfn = new SFNClient({ region: "eu-north-1" });
 
@@ -48,10 +50,9 @@ export const handler = async (event: any) => {
     return response(400, { error: "invalid JSON body" });
   }
 
-  if (!body?.start_date) {
-    return response(400, { error: "start_date required" });
+    if (!isValidStartDate(body?.start_date)) {
+    return response(400, { code: "INVALID_START_DATE" });
   }
-
   // fields-taulukko; vanha muoto (geometry ylätasolla) kääritään yhden alkion taulukoksi
   const items: any[] = Array.isArray(body.fields)
     ? body.fields

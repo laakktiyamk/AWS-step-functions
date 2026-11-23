@@ -37,8 +37,9 @@ exports.images = exports.image = exports.processAOI = void 0;
 const ndviService_1 = require("../services/ndviService");
 const mongodb = __importStar(require("../mongo/mongodb"));
 const cdseTokenService_1 = require("../services/cdseTokenService");
+const startDate_1 = require("../utils/startDate");
 // ============================================================
-// processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat 
+// processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat
 // ============================================================
 const processAOI = async (req, res, next) => {
     const authToken = req.authToken ?? '';
@@ -53,6 +54,11 @@ const processAOI = async (req, res, next) => {
         res.status(400).send('invalid geometry');
         return;
     }
+    // start_date: kasvukauden alku vuodesta 2020 alkaen (ks. utils/startDate)
+    if (!(0, startDate_1.isValidStartDate)(req.body.start_date)) {
+        res.status(400).json({ code: 'INVALID_START_DATE' });
+        return;
+    }
     try {
         const data = await (0, ndviService_1.syncAOI)(geometry, new Date(req.body.start_date), authToken, req.body.name ?? '', req.user._id, req.body.kasvulohkot ?? []);
         console.log('Request handled in (sec): ', (performance.now() - startTime) / 1000);
@@ -62,6 +68,11 @@ const processAOI = async (req, res, next) => {
             res.status(404).send('no data available');
     }
     catch (e) {
+        // Uusi AOI ilman käyttäjän CDSE-tunnuksia (syncAOI heittää)
+        if (e instanceof cdseTokenService_1.CdseNotConnectedError) {
+            res.status(409).json({ code: 'CDSE_NOT_CONNECTED' });
+            return;
+        }
         if (e instanceof Error)
             console.error('processAOI error:', e.message);
         res.status(500).json({ error: 'Server error' });
@@ -69,7 +80,7 @@ const processAOI = async (req, res, next) => {
 };
 exports.processAOI = processAOI;
 // ============================================================
-// Image handlers 
+// Image handlers
 // ============================================================
 const image = async (req, res, next) => {
     const id = req.params.sentinelid;
@@ -120,12 +131,8 @@ const images = async (req, res, next) => {
         res.status(200).json(imageMap);
     }
     catch (e) {
-        if (e instanceof cdseTokenService_1.CdseNotConnectedError) {
-            res.status(409).json({ code: 'CDSE_NOT_CONNECTED' });
-            return;
-        }
         if (e instanceof Error)
-            console.error('processAOI error:', e.message);
+            console.error('images error:', e.message);
         res.status(500).json({ error: 'Server error' });
     }
 };

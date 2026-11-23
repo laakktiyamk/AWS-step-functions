@@ -1,0 +1,39 @@
+#####
+@BASE_URL = {{$dotenv BASE_URL}}
+@email = laakkti@hotmail.com
+@password = Rytkynranta#2026 
+
+
+### Login
+# @name login
+POST {{BASE_URL}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+@authToken = {{login.response.body.$.token}}
+
+### 1) Liian vanha start_date, synkroninen haku → 400 INVALID_START_DATE
+POST {{BASE_URL}}/api/ndvi/dates
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{ "geometry": {"type":"Point","coordinates":[25,62]}, "start_date": "2015-01-01" }
+
+### 2) Kelvoton päivä (ei kasvukauden alku) → 400 INVALID_START_DATE
+POST {{BASE_URL}}/api/ndvi/dates
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{ "geometry": {"type":"Point","coordinates":[25,62]}, "start_date": "2022-06-15" }
+
+### 3) Putki, liian vanha → 400 INVALID_START_DATE
+POST {{BASE_URL}}/process
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{ "start_date": "2015-01-01", "fields": [] }

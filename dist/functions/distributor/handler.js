@@ -8,6 +8,7 @@ const client_sfn_1 = require("@aws-sdk/client-sfn");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const hash_1 = require("../shared/utils/hash");
 const validateGeometry_1 = require("../shared/utils/validateGeometry");
+const startDate_1 = require("../shared/utils/startDate");
 const mongoose_1 = __importDefault(require("mongoose"));
 const db_1 = require("../shared/mongo/db");
 const Job_1 = require("../shared/mongo/models/Job");
@@ -48,8 +49,8 @@ const handler = async (event) => {
     catch {
         return response(400, { error: "invalid JSON body" });
     }
-    if (!body?.start_date) {
-        return response(400, { error: "start_date required" });
+    if (!(0, startDate_1.isValidStartDate)(body?.start_date)) {
+        return response(400, { code: "INVALID_START_DATE" });
     }
     // fields-taulukko; vanha muoto (geometry ylätasolla) kääritään yhden alkion taulukoksi
     const items = Array.isArray(body.fields)

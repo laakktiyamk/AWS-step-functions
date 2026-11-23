@@ -1,44 +1,36 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getStatistics = void 0;
 const axios_1 = __importDefault(require("axios"));
-const calculateDim = __importStar(require("../utils/calculateDim"));
+const bbox_1 = require("@turf/bbox");
+const distance_1 = require("@turf/distance");
+/** Sentinel-2:n B04/B08-kaistojen natiiviresoluutio metreinä. */
+const STATS_METERS_PER_PIXEL = 10;
+/**
+ * Laskee statistiikkapyynnön pikselikoon geometrian bboxista natiiviresoluutiolla.
+ *
+ * @remarks
+ * Statistical API laskuttaa PU:t pyydetyn rasterin (bbox) pikselimäärän mukaan.
+ * Aiempi kiinteä 512 px:n pidempi sivu teki pienestä pellosta ~1 PU:n jokaista
+ * aikanäytettä kohden ja interpoloi 10 m:n dataa näennäisesti tarkemmaksi.
+ * Kuva (getImage_CDSE.ts) mitoitetaan erikseen visualisointia varten.
+ *
+ * @param geom - GeoJSON-geometria WGS84-koordinaatteina
+ * @returns width ja height pikseleinä (vähintään 1)
+ */
+function getDimsForStats(geom) {
+    const [minX, minY, maxX, maxY] = (0, bbox_1.bbox)(geom);
+    const midY = (minY + maxY) / 2;
+    const widthM = (0, distance_1.distance)([minX, midY], [maxX, midY], { units: "meters" });
+    const heightM = (0, distance_1.distance)([minX, minY], [minX, maxY], { units: "meters" });
+    return {
+        width: Math.max(1, Math.ceil(widthM / STATS_METERS_PER_PIXEL)),
+        height: Math.max(1, Math.ceil(heightM / STATS_METERS_PER_PIXEL)),
+    };
+}
 const getStatistics = async (geometry, dateFrom, dateTo, authToken, throwOnError = false) => {
     const evalscript = `//VERSION=3
 function setup() {
@@ -69,17 +61,7 @@ function evaluatePixel(s) {
   return { ndvi: [ndvi], classBand: [cls], dataMask: [1] };
 }
 `;
-    async function getWidthAndHeight(geom) {
-        const res = 512;
-        let width = res;
-        let height = await calculateDim.calculateHeight(geom, width);
-        if (width < height) {
-            height = res;
-            width = await calculateDim.calculateWidth(geom, height);
-        }
-        return { width, height };
-    }
-    const { width, height } = await getWidthAndHeight(geometry);
+    const { width, height } = getDimsForStats(geometry);
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     // Uusii CDSE:n ruuhkavirheet (429) ja tilapäiset palveluvirheet (503).
     // Odotus: suurempi arvo Retry-After-otsikosta (ms) ja porrastetusta odotuksesta,
@@ -124,8 +106,6 @@ function evaluatePixel(s) {
                 aggregation: {
                     timeRange: { from, to },
                     aggregationInterval: { of: "P1D" },
-                    RESX: "10m",
-                    RESY: "10m",
                     width,
                     height,
                     evalscript,
@@ -144,6 +124,8 @@ function evaluatePixel(s) {
                 },
             },
         }));
+        // PU-luku pidetään rivin viimeisenä, jotta CloudWatch-kyselyn parse toimii.
+        console.log('[PU] statistics', from, to, `${width}x${height}`, result.headers['x-processingunits-spent']);
         return result.data.data ?? [];
     };
     try {
@@ -186,23 +168,6 @@ function evaluatePixel(s) {
         return days.map((dayData) => {
             const bins = dayData.outputs?.classBand?.bands?.B0?.histogram?.bins ?? [];
             const total = bins.reduce((sum, b) => sum + b.count, 0);
-            /*const ndviClassPercentages: NdviClassPercentage[] = bins
-              .filter((b) => b.count > 0)
-              .map((b) => ({
-                class: b.lowEdge,
-                percentage: total > 0 ? +((b.count / total) * 100).toFixed(2) : 0,
-              }));*/
-            /*const ndviClassPercentages: number[] = bins.map((b) =>
-              total > 0 ? +((b.count / total) * 100).toFixed(2) : 0
-            );*/
-            /*
-                  const ndviClassPercentages: number[] = [
-                    bins.filter(b => b.lowEdge === 1).reduce((sum, b) => sum + b.count, 0),  // cls 1
-                    bins.filter(b => b.lowEdge === 2).reduce((sum, b) => sum + b.count, 0),  // cls 2
-                    bins.filter(b => b.lowEdge === 3).reduce((sum, b) => sum + b.count, 0),  // cls 3
-                    bins.filter(b => b.lowEdge >= 4).reduce((sum, b) => sum + b.count, 0),   // cls 4-9
-                  ].map(count => total > 0 ? +((count / total) * 100).toFixed(2) : 0);
-            */
             const raw = [
                 bins.filter(b => b.lowEdge === 1).reduce((sum, b) => sum + b.count, 0),
                 bins.filter(b => b.lowEdge === 2).reduce((sum, b) => sum + b.count, 0),

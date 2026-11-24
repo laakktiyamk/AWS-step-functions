@@ -14,6 +14,8 @@ import type { WeatherStore } from './weatherService'
 import { getGrowingSeasons } from '../utils/growingSeasonUtils'
 import { CdseNotConnectedError } from './cdseTokenService'
 
+import { syncCropParcelStatsForDates } from './cropParcelStatsService'
+
 const geoUtils = require('../utils/geoUtils')
 
 // ============================================================
@@ -398,6 +400,7 @@ export const fetchAndSaveDates = async (
 
   if (newDates.length > 0) {
     await mongodb.updateDates(id, newDates, userId)
+    await syncCropParcelStatsForDates(id, geometry, newDates, authToken)
   }
 
 

@@ -21,6 +21,7 @@ export const removeFieldForUser = async (
   await Promise.all([
     mongodb.deleteImagesByHash(id),
     mongodb.deleteWeatherByHash(id),
+    mongodb.deleteCropParcelStatsByHash(id),
   ])
   return 'deleted'
 }

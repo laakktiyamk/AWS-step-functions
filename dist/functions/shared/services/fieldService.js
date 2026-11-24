@@ -54,6 +54,7 @@ const removeFieldForUser = async (id, userId) => {
     await Promise.all([
         mongodb.deleteImagesByHash(id),
         mongodb.deleteWeatherByHash(id),
+        mongodb.deleteCropParcelStatsByHash(id),
     ]);
     return 'deleted';
 };

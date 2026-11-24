@@ -51,6 +51,7 @@ const isdateingrowingseason_1 = __importDefault(require("../utils/isdateingrowin
 const weatherService_1 = require("./weatherService");
 const growingSeasonUtils_1 = require("../utils/growingSeasonUtils");
 const cdseTokenService_1 = require("./cdseTokenService");
+const cropParcelStatsService_1 = require("./cropParcelStatsService");
 const geoUtils = require('../utils/geoUtils');
 // ============================================================
 // Concurrency limiter
@@ -288,6 +289,7 @@ const fetchAndSaveDates = async (geometry, fromTime, toTime, authToken, name = '
     const newDates = savedDates.filter(d => !existingTimes.has(d.generationtime));
     if (newDates.length > 0) {
         await mongodb.updateDates(id, newDates, userId);
+        await (0, cropParcelStatsService_1.syncCropParcelStatsForDates)(id, geometry, newDates, authToken);
     }
     return datesToSave; // palautetaan vain onnistuneet
 };

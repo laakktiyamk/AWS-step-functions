@@ -6,6 +6,9 @@ import { IImage } from '../types'
 import { CdseNotConnectedError } from '../services/cdseTokenService'
 import { isValidStartDate } from '../utils/startDate'
 
+import rewind from '@turf/rewind'
+import * as hash from '../utils/hash'
+
 // ============================================================
 // processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat
 // ============================================================
@@ -41,8 +44,15 @@ export const processAOI = async (req: SentinelRequest, res: Response, next: Next
     )
     console.log('Request handled in (sec): ', (performance.now() - startTime) / 1000)
 
-    if (data) res.status(200).send(data)
-    else res.status(404).send('no data available')
+    if (!data) {
+      res.status(404).send('no data available')
+      return
+    }
+
+    const aoiId = hash.sha256(rewind(geometry, { mutate: false }))
+    const cropParcelStats = await mongodb.getCropParcelStatsByHash(aoiId)
+
+    res.status(200).send({ ...data, cropParcelStats })
   } catch (e: unknown) {
     // Uusi AOI ilman käyttäjän CDSE-tunnuksia (syncAOI heittää)
     if (e instanceof CdseNotConnectedError) {

@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.attachUserToDates = exports.deleteDatesIfOrphaned = exports.removeUserFromDates = exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.setCheckedUntil = exports.login = exports.register = void 0;
+exports.getCropParcelStatsByHash = exports.deleteCropParcelStatsByHash = exports.attachUserToDates = exports.deleteDatesIfOrphaned = exports.removeUserFromDates = exports.deleteWeatherByHash = exports.deleteImagesByHash = exports.ifExists = exports.getAllData = exports.dropImages = exports.dropDates = exports.setBlockNDVIStatus = exports.setAllBlockNDVIStatus = exports.getBlocksNotNDVI = exports.getBlocks = exports.saveBlock = exports.getAllWeather = exports.getWeatherByRange = exports.getWeather = exports.saveWeather = exports.doEmptyDb = exports.getImagesByIds = exports.deleteImage = exports.getAllImages = exports.getImage = exports.saveImage = exports.userStatus = exports.updateUser = exports.saveUser = exports.getAllDateSets = exports.getDates = exports.deleteDates = exports.insertManyDates = exports.updateDates = exports.saveDates = exports.setCheckedUntil = exports.login = exports.register = void 0;
 const User_1 = require("./models/User");
 const Image_1 = require("./models/Image");
 const Dates_1 = require("./models/Dates");
 const Workarea_1 = require("./models/Workarea");
 const Weather_1 = require("./models/Weather");
+const CropParcelStats_1 = require("./models/CropParcelStats");
 /*
 import imageModel from "./models/image.js";
 import datesModel from "./models/dates.js";
@@ -510,3 +511,22 @@ const attachUserToDates = async (id, userId, name = '', kasvulohkot = []) => {
     }
 };
 exports.attachUserToDates = attachUserToDates;
+// Poistaa pellon kasvulohkojen statistiikan geometryHashin perusteella
+const deleteCropParcelStatsByHash = async (geometryHash) => {
+    try {
+        await CropParcelStats_1.CropParcelStats.deleteMany({ aoiId: geometryHash });
+        return true;
+    }
+    catch (err) {
+        console.error('deleteCropParcelStatsByHash failed:', err);
+        return false;
+    }
+};
+exports.deleteCropParcelStatsByHash = deleteCropParcelStatsByHash;
+// Hakee pellon kasvulohkojen statistiikan (kaikki vuodet) geometryHashin perusteella
+const getCropParcelStatsByHash = async (geometryHash) => {
+    return CropParcelStats_1.CropParcelStats.find({ aoiId: geometryHash }, { _id: 0, peruslohkotunnus: 1, lohkonumero: 1, vuosi: 1, kasvikoodi: 1, stats: 1 })
+        .sort({ vuosi: 1, peruslohkotunnus: 1, lohkonumero: 1 })
+        .lean();
+};
+exports.getCropParcelStatsByHash = getCropParcelStatsByHash;

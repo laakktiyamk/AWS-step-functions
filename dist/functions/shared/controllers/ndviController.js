@@ -32,12 +32,17 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.images = exports.image = exports.processAOI = void 0;
 const ndviService_1 = require("../services/ndviService");
 const mongodb = __importStar(require("../mongo/mongodb"));
 const cdseTokenService_1 = require("../services/cdseTokenService");
 const startDate_1 = require("../utils/startDate");
+const rewind_1 = __importDefault(require("@turf/rewind"));
+const hash = __importStar(require("../utils/hash"));
 // ============================================================
 // processAOI — REST API: vastaanottaa AOI:n ja päivämäärät, hakee NDVI-tilastot ja kuvat
 // ============================================================
@@ -62,10 +67,13 @@ const processAOI = async (req, res, next) => {
     try {
         const data = await (0, ndviService_1.syncAOI)(geometry, new Date(req.body.start_date), authToken, req.body.name ?? '', req.user._id, req.body.kasvulohkot ?? []);
         console.log('Request handled in (sec): ', (performance.now() - startTime) / 1000);
-        if (data)
-            res.status(200).send(data);
-        else
+        if (!data) {
             res.status(404).send('no data available');
+            return;
+        }
+        const aoiId = hash.sha256((0, rewind_1.default)(geometry, { mutate: false }));
+        const cropParcelStats = await mongodb.getCropParcelStatsByHash(aoiId);
+        res.status(200).send({ ...data, cropParcelStats });
     }
     catch (e) {
         // Uusi AOI ilman käyttäjän CDSE-tunnuksia (syncAOI heittää)

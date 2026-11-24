@@ -7,6 +7,7 @@ import { Workarea } from "./models/Workarea";
 import { Weather } from "./models/Weather";
 import { IWeather } from '../types/index';
 import { IImage } from '../types/index';
+import { CropParcelStats } from "./models/CropParcelStats";
 
 /*
 import imageModel from "./models/image.js";
@@ -591,4 +592,25 @@ export const attachUserToDates = async (
     console.error('attachUserToDates error:', err.message);
     return false;
   }
+};
+
+// Poistaa pellon kasvulohkojen statistiikan geometryHashin perusteella
+export const deleteCropParcelStatsByHash = async (geometryHash: string): Promise<boolean> => {
+  try {
+    await CropParcelStats.deleteMany({ aoiId: geometryHash });
+    return true;
+  } catch (err) {
+    console.error('deleteCropParcelStatsByHash failed:', err);
+    return false;
+  }
+};
+
+// Hakee pellon kasvulohkojen statistiikan (kaikki vuodet) geometryHashin perusteella
+export const getCropParcelStatsByHash = async (geometryHash: string) => {
+  return CropParcelStats.find(
+    { aoiId: geometryHash },
+    { _id: 0, peruslohkotunnus: 1, lohkonumero: 1, vuosi: 1, kasvikoodi: 1, stats: 1 }
+  )
+    .sort({ vuosi: 1, peruslohkotunnus: 1, lohkonumero: 1 })
+    .lean();
 };

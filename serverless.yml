@@ -412,7 +412,17 @@ functions:
     events:
       - httpApi:
           method: GET
-          path: /dev/test-email    
+          path: /dev/test-email
+
+  devCropParcelStats:
+    handler: dist/functions/devCropParcelStats/handler.handler
+    runtime: nodejs20.x
+    timeout: 29
+    events:
+      - httpApi:
+          path: /dev/crop-parcel-stats
+          method: post
+
 
 stepFunctions:
   stateMachines:

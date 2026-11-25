@@ -52,7 +52,11 @@ export const processAOI = async (req: SentinelRequest, res: Response, next: Next
     const aoiId = hash.sha256(rewind(geometry, { mutate: false }))
     const cropParcelStats = await mongodb.getCropParcelStatsByHash(aoiId)
 
-    res.status(200).send({ ...data, cropParcelStats })
+    const plain = typeof (data as any).toObject === 'function'
+      ? (data as any).toObject()
+      : data
+
+    res.status(200).send({ ...plain, cropParcelStats });
   } catch (e: unknown) {
     // Uusi AOI ilman käyttäjän CDSE-tunnuksia (syncAOI heittää)
     if (e instanceof CdseNotConnectedError) {

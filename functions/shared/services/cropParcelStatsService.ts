@@ -48,6 +48,15 @@ export async function fetchAndSaveCropParcelStats(
     try {
       const days = await getStatistics(p.geometry, dateFrom, dateTo, authToken, true);
 
+// DEBUG: mitkä pellon päivät puuttuvat tai ovat NaN lohkolla
+      const returned = new Map(
+        days.map((d: any) => [d.interval.from.slice(0, 10), d.outputs?.ndvi?.bands?.B0?.stats?.mean])
+      );
+      const missing = [...allowedDates].filter(d => !returned.has(d));
+      const nan = [...allowedDates].filter(d => returned.has(d) && !Number.isFinite(returned.get(d)));
+      //console.log(`cropParcelStats DEBUG ${p.peruslohkotunnus}/${p.lohkonumero}`,
+      //  { range: `${dateFrom} → ${dateTo}`, allowed: allowedDates.size, returned: returned.size, missing, nan });
+
       const fresh: ICropParcelStatsEntry[] = days
         .map(d => ({
           date: d.interval.from.slice(0, 10),
@@ -108,7 +117,7 @@ export async function syncCropParcelStatsForDates(
   dates: { generationtime: string }[],
   authToken: string
 ): Promise<void> {
-  console.log('syncCropParcelStatsForDates', aoiId, 'dates:', dates.length, 'token:', !!authToken);
+  //console.log('syncCropParcelStatsForDates', aoiId, 'dates:', dates.length, 'token:', !!authToken);
   if (!authToken || dates.length === 0) return;
 
   const byYear = new Map<string, string[]>();
@@ -118,7 +127,7 @@ export async function syncCropParcelStatsForDates(
     byYear.set(year, [...(byYear.get(year) ?? []), day]);
   }
 
-  try {
+    try {
     await ensureParcelConnected();
 
     for (const [year, days] of byYear) {
@@ -131,12 +140,17 @@ export async function syncCropParcelStatsForDates(
         kasvikoodi: p.kasvikoodi,
         geometry: p.geometry,
       }));
-      console.log(`cropParcelStats ${year}: parcels ${parcels.length}`);
+
       if (parcels.length === 0) continue;
+
+      // Loppu = viimeistä päivää seuraavan päivän alku: Statistical API:n P1D-intervallit
+      // alkavat from-hetkestä, ja vajaa viimeinen intervalli jätetään pois (lastIntervalBehavior SKIP)
+      const dayAfter = new Date(`${days[days.length - 1]}T00:00:00Z`);
+      dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
 
       const result = await fetchAndSaveCropParcelStats(
         aoiId, parcels,
-        `${days[0]}T00:00:00Z`, `${days[days.length - 1]}T23:59:59Z`,
+        `${days[0]}T00:00:00Z`, dayAfter.toISOString(),
         authToken, new Set(days)
       );
       console.log(`cropParcelStats ${year}: ${days.length} pv, ${parcels.length} lohkoa`, result);

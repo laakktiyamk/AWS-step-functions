@@ -8,7 +8,7 @@ import { Schema, model, Types } from 'mongoose';
  * aoiId = dates-dokumentin geometryHash. Muistiinpano näkyy vain kirjoittajalle.
  */
 export interface IFieldNote {
-  userId: Types.ObjectId;
+  userId: string;
   aoiId: string;
   text: string;
   createdAt: Date;
@@ -17,7 +17,7 @@ export interface IFieldNote {
 
 const fieldNoteSchema = new Schema<IFieldNote>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: String, required: true },
     aoiId: { type: String, required: true },
     text: { type: String, default: '', maxlength: 5000 },
   },

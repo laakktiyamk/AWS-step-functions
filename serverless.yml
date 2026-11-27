@@ -317,6 +317,26 @@ functions:
       - httpApi:
           path: /api/municipalities/{kunta}
           method: get
+  
+  fieldNoteGet:
+    handler: dist/functions/fieldNotes/handler.getNote
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{aoiId}/note
+          method: get
+
+  fieldNoteSave:
+    handler: dist/functions/fieldNotes/handler.saveNote
+    runtime: nodejs20.x
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /api/fields/{aoiId}/note
+          method: put        
 
   jobGet:
     handler: dist/functions/jobs/handler.get

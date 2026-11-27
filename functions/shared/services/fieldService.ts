@@ -3,6 +3,7 @@ import rewind from '@turf/rewind'
 import * as hash from '../utils/hash'
 
 export type RemoveFieldResult = 'not_found' | 'forbidden' | 'removed_user' | 'deleted'
+import { deleteNoteForField } from './fieldNoteService'
 
 export const removeFieldForUser = async (
   id: string,
@@ -13,6 +14,7 @@ export const removeFieldForUser = async (
   if (!data.userIds?.includes(userId)) return 'forbidden'
 
   await mongodb.removeUserFromDates(id, userId)
+  await deleteNoteForField(userId, id)
 
   // Data poistetaan vasta, kun viimeinenkin käyttäjä on poistanut pellon
   const orphaned = await mongodb.deleteDatesIfOrphaned(id)

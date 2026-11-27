@@ -1,0 +1,69 @@
+@BASE_URL = {{$dotenv BASE_URL}}
+@email = laakkti@hotmail.com
+@password = Rytkynranta#2026 
+@AOI_ID = 231604f751dbd8f32d0612cb47ac38d94b8e43e136ca0af84d53334b2dff07b7
+
+### Login
+# @name login
+POST {{BASE_URL}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+@TOKEN = {{login.response.body.token}}
+
+
+### Peltolista → kopioi pellon id-kenttä @AOI_ID:ksi
+GET {{BASE_URL}}/api/fields
+Authorization: Bearer {{TOKEN}}
+
+
+### 1. Hae muistiinpano (aluksi tyhjä) → 200 { text: "", updatedAt: null }
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+
+### 2. Tallenna → 200 { text, updatedAt }
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "Lannoitettu 12.6., pohjoisreunassa märkä kohta" }
+
+### 3. Hae uudelleen → sama teksti
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+
+### 4. Päivitä (upsert, ei uutta dokumenttia) → 200, updatedAt muuttuu
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "Lannoitettu 12.6. ja 3.7." }
+
+### 5. Väärä tyyppi → 400 NOTE_BAD_REQUEST
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": 123 }
+
+### 6. Pelto ei käyttäjän listalla → 404 FIELD_NOT_FOUND
+PUT {{BASE_URL}}/api/fields/olematon-hash/note
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "ei pitäisi tallentua" }
+
+### 7. Ilman tokenia → 401
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+
+### 8. Tyhjä teksti poistaa → 200 { text: "", updatedAt: null }
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "   " }

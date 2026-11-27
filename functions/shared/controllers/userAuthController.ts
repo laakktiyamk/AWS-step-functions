@@ -27,6 +27,8 @@ import { getAllDateSets } from "../mongo/mongodb";
 import { removeFieldForUser } from "../services/fieldService";
 import { Job } from "../mongo/models/Job";
 
+import { deleteNotesForUser } from "../services/fieldNoteService";
+
 /**
  * How long the email verification link is valid (minutes).
  * Must match the lifetime of the "verify_email" token in tokenService.
@@ -448,7 +450,10 @@ export const deleteAccount = async (req: Request, res: Response) => {
     // 2) Käyttäjän jobit
     await Job.deleteMany({ userId: String(userId) });
 
-    // 3) Käyttäjä viimeisenä (salatut CDSE-tunnukset poistuvat dokumentin mukana).
+    // 3) Käyttäjän muistiinpanot (varmistus: myös orvot, joiden pelto ei ole enää listalla)
+    await deleteNotesForUser(String(userId));
+
+    // 4) Käyttäjä viimeisenä (salatut CDSE-tunnukset poistuvat dokumentin mukana).
     //    Jos jokin yllä kaatuu, tili on yhä olemassa ja poiston voi ajaa uudelleen.
     await User.deleteOne({ _id: userId });
 

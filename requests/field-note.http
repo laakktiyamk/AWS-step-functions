@@ -1,6 +1,6 @@
 @BASE_URL = {{$dotenv BASE_URL}}
-@email = laakkti@hotmail.com
-@password = Rytkynranta#2026 
+@email = {{$dotenv EMAIL}}
+@password = {{$dotenv PASSWORD}}
 @AOI_ID = 231604f751dbd8f32d0612cb47ac38d94b8e43e136ca0af84d53334b2dff07b7
 
 ### Login
@@ -22,47 +22,77 @@ GET {{BASE_URL}}/api/fields
 Authorization: Bearer {{TOKEN}}
 
 
-### 1. Hae muistiinpano (aluksi tyhjä) → 200 { text: "", updatedAt: null }
-GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+### 1. Hae yleinen + 2026 → 200 { general: {...}, season: { year: 2026, ... } }
+###    (vanha muistiinpano näkyy nyt generalissa)
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2026
 Authorization: Bearer {{TOKEN}}
 
-### 2. Tallenna → 200 { text, updatedAt }
+### 2. Tallenna yleinen (ei year-parametria) → 200 { text, updatedAt }
 PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
 Authorization: Bearer {{TOKEN}}
 Content-Type: application/json
 
-{ "text": "Lannoitettu 12.6., pohjoisreunassa märkä kohta" }
+{ "text": "Pohjoisreunassa märkä kohta" }
 
-### 3. Hae uudelleen → sama teksti
-GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
-Authorization: Bearer {{TOKEN}}
-
-### 4. Päivitä (upsert, ei uutta dokumenttia) → 200, updatedAt muuttuu
-PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+### 3. Tallenna kausi 2026 → 200
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2026
 Authorization: Bearer {{TOKEN}}
 Content-Type: application/json
 
-{ "text": "Lannoitettu 12.6. ja 3.7." }
+{ "text": "1. niitto 2.7., lannoitettu 12.6." }
 
-### 5. Väärä tyyppi → 400 NOTE_BAD_REQUEST
+### 4. Päivitä kausi 2026 (upsert, ei uutta dokumenttia) → 200, updatedAt muuttuu
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2026
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "1. niitto 2.7., lannoitettu 12.6. ja 3.7." }
+
+### 5. Tallenna kausi 2025 → 200
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2025
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "Kuiva alkukesä" }
+
+### 6. Hae 2026 → general + season 2026 (ei 2025:tä)
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2026
+Authorization: Bearer {{TOKEN}}
+
+### 7. Hae 2025 → general + season 2025
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2025
+Authorization: Bearer {{TOKEN}}
+
+### 8. Liian vanha vuosi → 400 INVALID_YEAR
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2019
+Authorization: Bearer {{TOKEN}}
+
+### 9. Tuleva vuosi → 400 INVALID_YEAR
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2030
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{ "text": "ei pitäisi tallentua" }
+
+### 10. Väärä tyyppi → 400 NOTE_BAD_REQUEST
 PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
 Authorization: Bearer {{TOKEN}}
 Content-Type: application/json
 
 { "text": 123 }
 
-### 6. Pelto ei käyttäjän listalla → 404 FIELD_NOT_FOUND
-PUT {{BASE_URL}}/api/fields/olematon-hash/note
+### 11. Pelto ei käyttäjän listalla → 404 FIELD_NOT_FOUND
+PUT {{BASE_URL}}/api/fields/olematon-hash/note?year=2026
 Authorization: Bearer {{TOKEN}}
 Content-Type: application/json
 
 { "text": "ei pitäisi tallentua" }
 
-### 7. Ilman tokenia → 401
-GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+### 12. Ilman tokenia → 401
+GET {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2026
 
-### 8. Tyhjä teksti poistaa → 200 { text: "", updatedAt: null }
-PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note
+### 13. Tyhjennä kausi 2025 → 200 { text: "", updatedAt: null }
+PUT {{BASE_URL}}/api/fields/{{AOI_ID}}/note?year=2025
 Authorization: Bearer {{TOKEN}}
 Content-Type: application/json
 

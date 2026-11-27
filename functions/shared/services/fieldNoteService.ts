@@ -1,68 +1,97 @@
-import { Types } from 'mongoose';
-import { FieldNote } from '../mongo/models/FieldNote';
-import { Dates } from '../mongo/models/Dates'; // ← vaihda dates-mallisi oikea nimi/polku
-
+import { FieldNote } from '../mongo/models/FieldNote'
 import * as mongodb from '../mongo/mongodb'
 
 /** Virhe, kun pelto ei ole käyttäjän listalla. */
 export class FieldNotFoundError extends Error {
   constructor() {
-    super('FIELD_NOT_FOUND');
+    super('FIELD_NOT_FOUND')
   }
 }
+
+export interface NoteDto {
+  text: string
+  updatedAt: Date | null
+}
+
+const EMPTY: NoteDto = { text: '', updatedAt: null }
+
+const toDto = (n?: { text: string; updatedAt: Date } | null): NoteDto =>
+  n ? { text: n.text, updatedAt: n.updatedAt } : EMPTY
 
 /**
  * Tarkistaa, että AOI on käyttäjän listalla (dates.userIds).
  *
- * @remarks Estää muistiinpanon kirjoittamisen mielivaltaiselle aoiId:lle.
+ * @remarks Sama logiikka kuin removeFieldForUserissa.
  */
-/*
-async function assertUserHasField(userId: string, aoiId: string): Promise<void> {
-  const exists = await Dates.exists({ geometryHash: aoiId, userIds: userId });
-  if (!exists) throw new FieldNotFoundError();
-}*/
-
 async function assertUserHasField(userId: string, aoiId: string): Promise<void> {
   const data = await mongodb.getDates(aoiId)
-  
   if (!data?.userIds?.includes(String(userId))) throw new FieldNotFoundError()
 }
 
 /**
- * Palauttaa käyttäjän muistiinpanon pellolle.
+ * Palauttaa pellon yleisen muistiinpanon ja valitun vuoden muistiinpanon.
  *
- * @returns Muistiinpano tai null, jos sitä ei ole.
+ * @remarks
+ * Yksi kysely: year $in [null, year]. Puuttuva year-kenttä (vanhat dokumentit)
+ * vastaa nullia, joten ne näkyvät yleisenä muistiinpanona.
+ *
+ * @param year - Kauden vuosi tai null, jolloin season on null.
  */
-export async function getNote(userId: string, aoiId: string) {
-  await assertUserHasField(userId, aoiId);
-  return FieldNote.findOne({ userId, aoiId }).lean();
+export async function getNotes(
+  userId: string,
+  aoiId: string,
+  year: number | null
+): Promise<{ general: NoteDto; season: (NoteDto & { year: number }) | null }> {
+  await assertUserHasField(userId, aoiId)
+
+  const years = year === null ? [null] : [null, year]
+  const notes = await FieldNote.find({ userId, aoiId, year: { $in: years } }).lean()
+
+  const general = notes.find((n) => n.year == null)
+  const season = year === null ? undefined : notes.find((n) => n.year === year)
+
+  return {
+    general: toDto(general),
+    season: year === null ? null : { year, ...toDto(season) },
+  }
 }
 
 /**
- * Tallentaa muistiinpanon (upsert). Tyhjä teksti poistaa muistiinpanon.
+ * Tallentaa yhden muistiinpanon (upsert). Tyhjä teksti poistaa sen.
  *
- * @returns Tallennettu muistiinpano tai null, jos poistettiin.
+ * @param year - null = yleinen, numero = kauden muistiinpano.
  */
-export async function saveNote(userId: string, aoiId: string, text: string) {
-  await assertUserHasField(userId, aoiId);
-  const trimmed = text.trim();
+export async function saveNote(
+  userId: string,
+  aoiId: string,
+  year: number | null,
+  text: string
+): Promise<NoteDto> {
+  await assertUserHasField(userId, aoiId)
+
+  const filter = { userId, aoiId, year }
+  const trimmed = text.trim()
+
   if (!trimmed) {
-    await FieldNote.deleteOne({ userId, aoiId });
-    return null;
+    await FieldNote.deleteOne(filter)
+    return EMPTY
   }
-  return FieldNote.findOneAndUpdate(
-    { userId, aoiId },
+
+  const saved = await FieldNote.findOneAndUpdate(
+    filter,
     { $set: { text: trimmed } },
     { upsert: true, new: true, runValidators: true }
-  ).lean();
+  ).lean()
+
+  return toDto(saved)
 }
 
-/** Poistaa käyttäjän muistiinpanon pellolta (pellon poisto). */
+/** Poistaa käyttäjän kaikki muistiinpanot pellolta (pellon poisto). */
 export async function deleteNoteForField(userId: string, aoiId: string): Promise<void> {
-  await FieldNote.deleteOne({ userId, aoiId });
+  await FieldNote.deleteMany({ userId, aoiId })
 }
 
 /** Poistaa kaikki käyttäjän muistiinpanot (tilin poisto). */
 export async function deleteNotesForUser(userId: string): Promise<void> {
-  await FieldNote.deleteMany({ userId });
+  await FieldNote.deleteMany({ userId })
 }
